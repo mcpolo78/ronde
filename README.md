@@ -6,6 +6,10 @@
 
 **Démo en ligne : <https://ronde-six.vercel.app>** — compte `claire@ronde.demo`, mot de passe `demo-ronde`. Données régénérées chaque nuit ; si l’API était en veille, le premier chargement peut prendre une trentaine de secondes.
 
+**App technicien (Android)** : [installer l'APK de démo](https://expo.dev/accounts/jedi95/projects/ronde/builds/3ebeba96-d640-486a-a3bb-f7d9b0cd8335) — compte `karim@ronde.demo`, mot de passe `demo-ronde`. Ou scanner :
+
+<img src="docs/screenshots/app-android-qr.png" alt="QR code d'installation de l'app Android" width="140">
+
 Ronde est une plateforme métier pour les PME de maintenance (chauffage, bornes de recharge, VMC…) :
 
 - **Back-office web** (Next.js) pour la responsable planning : planning glisser-déposer, carte, suivi en direct, indicateurs.
