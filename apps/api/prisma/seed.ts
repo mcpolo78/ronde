@@ -9,7 +9,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { buildSignatureSvg, dayKey, zonedDateTime, type SignatureStrokes } from "@ronde/domain";
 import { hashPassword } from "better-auth/crypto";
 import "dotenv/config";
-import type { InterventionStatus, Priority } from "../src/generated/prisma/client";
+import { randomUUID } from "node:crypto";
+import type { InterventionStatus, Prisma, Priority } from "../src/generated/prisma/client";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 faker.seed(42);
@@ -41,6 +42,13 @@ const CITIES = [
 ];
 
 const minutes = (n: number) => n * 60_000;
+
+/** Identifiant au même format que ceux de Prisma (minuscules et chiffres, sans tiret). */
+const newId = () => `c${randomUUID().replaceAll("-", "").slice(0, 24)}`;
+
+async function insertInBatches<T>(insert: (data: T[]) => Promise<unknown>, data: T[], size = 1000) {
+  for (let i = 0; i < data.length; i += size) await insert(data.slice(i, i + size));
+}
 
 /** Signature manuscrite plausible : deux ou trois tracés ondulés de gauche à droite. */
 function fakeSignature(): SignatureStrokes {
@@ -174,7 +182,15 @@ async function main() {
   const now = new Date();
   const firstMonday = mondayOf(new Date(now.getTime() - 21 * 86_400_000));
   let refCounter = 0;
-  let created = 0;
+  // Tout est préparé en mémoire puis inséré par lots : quelques allers-retours au lieu de milliers
+  // (le seed nocturne tourne aux États-Unis contre une base à Francfort).
+  const rows = {
+    interventions: [] as Prisma.InterventionCreateManyInput[],
+    checklist: [] as Prisma.ChecklistItemCreateManyInput[],
+    events: [] as Prisma.StatusEventCreateManyInput[],
+    files: [] as Prisma.StoredFileCreateManyInput[],
+    signatures: [] as Prisma.SignatureCreateManyInput[],
+  };
 
   for (let dayOffset = 0; dayOffset < 35; dayOffset++) {
     const day = new Date(firstMonday);
@@ -207,8 +223,9 @@ async function main() {
         ]);
 
         refCounter++;
-        const intervention = await prisma.intervention.create({
-          data: {
+        const intervention = { id: newId() };
+        rows.interventions.push({
+            id: intervention.id,
             reference: `INT-${scheduledStart.getFullYear()}-${String(refCounter).padStart(4, "0")}`,
             type: template.type,
             description: faker.helpers.maybe(() => faker.lorem.sentence({ min: 6, max: 14 }), { probability: 0.6 }) ?? null,
@@ -221,16 +238,15 @@ async function main() {
             companyId: company.id,
             siteId: faker.helpers.arrayElement(sites).id,
             technicianId: tech.id,
-            checklist: {
-              create: template.checklist.map((label, position) => ({
-                label,
-                position,
-                checked: status === "DONE",
-              })),
-            },
-          },
         });
-        created++;
+        rows.checklist.push(
+          ...template.checklist.map((label, position) => ({
+            label,
+            position,
+            checked: status === "DONE",
+            interventionId: intervention.id,
+          })),
+        );
 
         // Historique des statuts, cohérent avec le créneau (retards réalistes)
         const events: { status: InterventionStatus; at: Date; authorId: string }[] = [];
@@ -245,29 +261,29 @@ async function main() {
             events.push({ status: "DONE", at: doneAt, authorId: tech.id });
             // vraie signature, construite comme celles du mobile (tracés → SVG côté serveur)
             const svg = Buffer.from(buildSignatureSvg(fakeSignature()));
-            const file = await prisma.storedFile.create({
-              data: { clientId: `seed-sig-${intervention.id}`, companyId: company.id, contentType: "image/svg+xml", size: svg.byteLength, data: svg },
-            });
-            await prisma.signature.create({
-              data: {
-                url: `/api/files/${file.id}`,
-                signerName: faker.person.fullName(),
-                signedAt: doneAt,
-                interventionId: intervention.id,
-              },
+            const fileId = newId();
+            rows.files.push({ id: fileId, clientId: `seed-sig-${intervention.id}`, companyId: company.id, contentType: "image/svg+xml", size: svg.byteLength, data: svg });
+            rows.signatures.push({
+              url: `/api/files/${fileId}`,
+              signerName: faker.person.fullName(),
+              signedAt: doneAt,
+              interventionId: intervention.id,
             });
           }
         }
-        if (events.length) {
-          await prisma.statusEvent.createMany({
-            data: events.map((e) => ({ ...e, interventionId: intervention.id })),
-          });
-        }
+        rows.events.push(...events.map((e) => ({ ...e, interventionId: intervention.id })));
       }
     }
   }
 
-  console.log(`OK : 1 entreprise, ${technicians.length} techniciens, ${sites.length} sites, ${created} interventions.`);
+  // ordre imposé par les clés étrangères
+  await insertInBatches((data) => prisma.intervention.createMany({ data }), rows.interventions);
+  await insertInBatches((data) => prisma.checklistItem.createMany({ data }), rows.checklist);
+  await insertInBatches((data) => prisma.statusEvent.createMany({ data }), rows.events);
+  await insertInBatches((data) => prisma.storedFile.createMany({ data }), rows.files, 100);
+  await insertInBatches((data) => prisma.signature.createMany({ data }), rows.signatures);
+
+  console.log(`OK : 1 entreprise, ${technicians.length} techniciens, ${sites.length} sites, ${rows.interventions.length} interventions.`);
   console.log(`Comptes de démo (mot de passe « ${DEMO_PASSWORD} ») : claire@ronde.demo (manager), karim@ronde.demo (technicien)`);
 }
 
