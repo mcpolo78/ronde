@@ -129,7 +129,7 @@ type Query {
   me: User
 
   """
-  Interventions du technicien connecté pour une journée (préchargées pour le hors ligne).
+  Interventions du technicien connecté pour une journée (préchargées pour le hors ligne). Les annulées sont incluses : le technicien doit voir qu'une intervention prévue a été annulée.
   """
   myDay(date: DateTime): [Intervention!]!
 

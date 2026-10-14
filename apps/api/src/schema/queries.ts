@@ -108,7 +108,9 @@ builder.queryType({
 
     myDay: t.prismaField({
       type: ["Intervention"],
-      description: "Interventions du technicien connecté pour une journée (préchargées pour le hors ligne).",
+      description:
+        "Interventions du technicien connecté pour une journée (préchargées pour le hors ligne). " +
+        "Les annulées sont incluses : le technicien doit voir qu'une intervention prévue a été annulée.",
       args: { date: t.arg({ type: "DateTime", required: false }) },
       resolve: (query, _root, args, ctx) => {
         const viewer = requireViewer(ctx, "TECHNICIAN");
@@ -118,7 +120,6 @@ builder.queryType({
           where: {
             technicianId: viewer.id,
             scheduledStart: { gte: from, lt: to },
-            status: { not: "CANCELLED" },
           },
           orderBy: { scheduledStart: "asc" },
         });
