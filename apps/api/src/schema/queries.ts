@@ -1,4 +1,10 @@
-import { arrivalDelayMinutes, average, firstTimeFixRate, onSiteDurationMinutes } from "@ronde/domain";
+import {
+  arrivalDelayMinutes,
+  average,
+  dayRange,
+  firstTimeFixRate,
+  onSiteDurationMinutes,
+} from "@ronde/domain";
 import { builder, requireViewer } from "../builder";
 import { prisma } from "../db";
 import { InterventionStatusEnum } from "./enums";
@@ -24,9 +30,6 @@ const Dashboard = builder
     }),
   });
 
-const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86_400_000);
-
 builder.queryType({
   fields: (t) => ({
     me: t.prismaField({
@@ -44,6 +47,19 @@ builder.queryType({
           ...query,
           where: { companyId: viewer.companyId, role: "TECHNICIAN" },
           orderBy: { name: "asc" },
+        });
+      },
+    }),
+
+    sites: t.prismaField({
+      type: ["Site"],
+      description: "Sites des clients de l'entreprise (formulaire de création d'intervention).",
+      resolve: (query, _root, _args, ctx) => {
+        const viewer = requireViewer(ctx, "MANAGER");
+        return prisma.site.findMany({
+          ...query,
+          where: { customer: { companyId: viewer.companyId } },
+          orderBy: [{ customer: { name: "asc" } }, { label: "asc" }],
         });
       },
     }),
@@ -96,12 +112,12 @@ builder.queryType({
       args: { date: t.arg({ type: "DateTime", required: false }) },
       resolve: (query, _root, args, ctx) => {
         const viewer = requireViewer(ctx, "TECHNICIAN");
-        const day = startOfDay(args.date ?? new Date());
+        const { from, to } = dayRange(args.date ?? new Date());
         return prisma.intervention.findMany({
           ...query,
           where: {
             technicianId: viewer.id,
-            scheduledStart: { gte: day, lt: addDays(day, 1) },
+            scheduledStart: { gte: from, lt: to },
             status: { not: "CANCELLED" },
           },
           orderBy: { scheduledStart: "asc" },

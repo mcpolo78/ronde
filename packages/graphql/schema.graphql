@@ -112,6 +112,11 @@ type Query {
   Interventions du technicien connecté pour une journée (préchargées pour le hors ligne).
   """
   myDay(date: DateTime): [Intervention!]!
+
+  """
+  Sites des clients de l'entreprise (formulaire de création d'intervention).
+  """
+  sites: [Site!]!
   technicians: [User!]!
 }
 

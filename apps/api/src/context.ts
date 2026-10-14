@@ -1,4 +1,5 @@
 import type { YogaInitialContext } from "graphql-yoga";
+import { auth } from "./auth";
 import { prisma } from "./db";
 import type { Role } from "./generated/prisma/client";
 
@@ -13,16 +14,24 @@ export interface Context {
 }
 
 /**
- * TEMPORAIRE (S1) : en développement, l'utilisateur courant est choisi via l'en-tête
- * `x-dev-user` (son email). Remplacé par les sessions Better Auth en S2 ; désactivé en production.
+ * Raccourci de développement : avec `ALLOW_DEV_IMPERSONATION=true`, l'en-tête `x-dev-user`
+ * (un email) remplace la session. Pratique dans GraphiQL et les tests ; jamais activé en production.
  */
+const devImpersonation =
+  process.env.ALLOW_DEV_IMPERSONATION === "true" && process.env.NODE_ENV !== "production";
+
 export async function createContext({ request }: YogaInitialContext): Promise<Context> {
-  if (process.env.NODE_ENV === "production") return { viewer: null };
-  const email = request.headers.get("x-dev-user");
-  if (!email) return { viewer: null };
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, companyId: true, role: true },
-  });
-  return { viewer: user };
+  const devEmail = devImpersonation ? request.headers.get("x-dev-user") : null;
+  if (devEmail) {
+    const user = await prisma.user.findUnique({
+      where: { email: devEmail },
+      select: { id: true, companyId: true, role: true },
+    });
+    return { viewer: user };
+  }
+
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) return { viewer: null };
+  const { id, companyId, role } = session.user;
+  return { viewer: { id, companyId, role: role as Role } };
 }

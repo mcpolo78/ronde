@@ -6,11 +6,15 @@
  */
 import { fakerFR as faker } from "@faker-js/faker";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hashPassword } from "better-auth/crypto";
 import "dotenv/config";
 import type { InterventionStatus, Priority } from "../src/generated/prisma/client";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 faker.seed(42);
+
+/** Mot de passe commun aux comptes de démo (affiché sur la page de connexion). */
+export const DEMO_PASSWORD = "demo-ronde";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
@@ -52,6 +56,9 @@ function mondayOf(d: Date) {
 
 async function main() {
   console.log("Nettoyage…");
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.verification.deleteMany();
   await prisma.statusEvent.deleteMany();
   await prisma.photo.deleteMany();
   await prisma.signature.deleteMany();
@@ -89,6 +96,17 @@ async function main() {
       }),
     ),
   );
+
+  // Identifiants Better Auth : un compte « credential » par utilisateur (accountId = userId)
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
+  await prisma.account.createMany({
+    data: [manager, ...technicians].map((u) => ({
+      accountId: u.id,
+      providerId: "credential",
+      userId: u.id,
+      password: passwordHash,
+    })),
+  });
 
   const sites = [];
   for (let i = 0; i < 30; i++) {
@@ -216,7 +234,7 @@ async function main() {
   }
 
   console.log(`OK : 1 entreprise, ${technicians.length} techniciens, ${sites.length} sites, ${created} interventions.`);
-  console.log("Comptes de démo : claire@ronde.demo (manager), karim@ronde.demo (technicien)");
+  console.log(`Comptes de démo (mot de passe « ${DEMO_PASSWORD} ») : claire@ronde.demo (manager), karim@ronde.demo (technicien)`);
 }
 
 main()
