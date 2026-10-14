@@ -1,5 +1,7 @@
 # Ronde
 
+[![CI](https://github.com/mcpolo78/ronde/actions/workflows/ci.yml/badge.svg)](https://github.com/mcpolo78/ronde/actions/workflows/ci.yml)
+
 > Planifiez, suivez et clôturez les interventions de vos techniciens — même sans réseau.
 
 Ronde est une plateforme métier pour les PME de maintenance (chauffage, bornes de recharge, VMC…) :
