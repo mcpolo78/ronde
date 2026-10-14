@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
 const nextConfig: NextConfig = {
+  // indicateur des outils de dev (dev uniquement) : à droite, il ne masque pas le menu utilisateur
+  devIndicators: { position: "bottom-right" },
   cacheComponents: true,
   partialPrefetching: true,
   transpilePackages: ["@ronde/domain", "@ronde/graphql"],

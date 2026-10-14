@@ -13,6 +13,15 @@ Ronde est une plateforme métier pour les PME de maintenance (chauffage, bornes 
 
 Pourquoi ce projet, pour qui, et comment on mesure son succès : voir [docs/discovery.md](docs/discovery.md).
 
+<p align="center">
+  <img src="docs/screenshots/web-planning.png" alt="Planning de la semaine du back-office" width="760">
+</p>
+<p align="center">
+  <img src="docs/screenshots/mobile-journee.png" alt="App technicien : ma journée" width="200">
+  <img src="docs/screenshots/mobile-intervention.png" alt="App technicien : fiche intervention" width="200">
+  <img src="docs/screenshots/mobile-signature.png" alt="App technicien : signature du client" width="200">
+</p>
+
 ### Le back-office
 
 - **Tableau de bord** : activité du jour par technicien, interventions à traiter, indicateurs sur 30 jours (résolution à la 1re visite, durée sur site, retard moyen).
@@ -22,6 +31,14 @@ Pourquoi ce projet, pour qui, et comment on mesure son succès : voir [docs/disc
 - **Création** avec les mêmes règles de validation que l'API (schémas Zod partagés).
 - **Temps réel** : les changements faits sur le terrain apparaissent sans recharger (subscription GraphQL en SSE).
 
+### L'app technicien
+
+- **Ma journée** préchargée et consultable **sans réseau** ; indicateur de synchronisation toujours visible (« À jour », « Hors ligne · 3 actions en attente »).
+- **Une action principale à la fois** : « Je pars », « Je suis arrivé », « Faire signer le client », « Clôturer » — les mêmes règles que le serveur (on ne clôture pas sans signature).
+- **Itinéraire et appel** en un geste, consignes d'accès, checklist, photos (compressées et conservées sur l'appareil jusqu'à l'envoi), compte rendu.
+- **Signature du client** au doigt : le serveur reconstruit le SVG à partir des tracés (aucun balisage client servi).
+- **Hors ligne** : tout se met en file et part dans l'ordre au retour du réseau, sans doublon ; une intervention annulée par le bureau pendant la coupure est signalée clairement.
+
 ## Architecture
 
 ```
@@ -29,7 +46,7 @@ ronde/
 ├─ apps/
 │  ├─ api/        Node · GraphQL Yoga · Pothos · Prisma 7 · PostgreSQL
 │  ├─ web/        Next.js 16 (App Router, Cache Components) · Tailwind CSS 4 · Better Auth · dnd-kit
-│  └─ mobile/     Expo SDK 57 · Expo Router
+│  └─ mobile/     Expo SDK 57 · Expo Router · file de synchro hors ligne (zustand + AsyncStorage)
 ├─ packages/
 │  ├─ domain/     règles métier pures et testées (cycle de vie, indicateurs, validations Zod)
 │  ├─ graphql/    schéma SDL exporté par l'API + gql.tada → requêtes typées côté clients
@@ -47,19 +64,22 @@ Les règles métier (qui peut passer une intervention de quel statut à quel aut
 | [0002](docs/adr/0002-graphql-code-first.md) | GraphQL code-first avec Pothos et Prisma |
 | [0003](docs/adr/0003-offline-first-mobile.md) | Mobile offline-first : mutations idempotentes |
 | [0004](docs/adr/0004-auth-et-acces-api-web.md) | Authentification et accès à l'API depuis le back-office (proxy first-party) |
+| [0005](docs/adr/0005-app-mobile.md) | App technicien : synchronisation, signature, fichiers, tests |
 
 ## Démarrer en local
 
-Prérequis : Node 24, pnpm. **Pas besoin de Docker** : la base Postgres locale est fournie par `prisma dev`.
+Prérequis : Node 24, pnpm. **Pas besoin de Docker** : `pnpm db:dev` lance un vrai PostgreSQL 17 embarqué.
 
 ```bash
 pnpm install
-cp apps/api/.env.example apps/api/.env
-pnpm db:dev                             # Postgres locale (l'URL affichée doit correspondre à .env)
-pnpm codegen                            # client Prisma + schéma GraphQL
-pnpm db:push && pnpm db:seed            # tables + données de démo
+cp apps/api/.env.example apps/api/.env  # puis renseigner BETTER_AUTH_SECRET
+pnpm db:dev                             # PostgreSQL sur :5433 — laisser tourner dans un terminal
+pnpm codegen                            # client Prisma + schéma GraphQL + types des clients
+pnpm db:deploy && pnpm db:seed          # migrations + données de démo
 pnpm dev                                # API :4000 · web :3000 · Expo :8081
 ```
+
+**App mobile** : installer *Expo Go* sur un téléphone connecté au même Wi-Fi et scanner le QR code affiché par `pnpm dev` (l'app trouve seule l'API de la machine). Elle tourne aussi dans le navigateur : touche `w` dans le terminal Expo.
 
 Back-office : <http://localhost:3000> · GraphiQL : <http://localhost:4000/graphql>.
 
@@ -81,11 +101,13 @@ Neon (base) · Render (API) · Vercel (back-office), tous en région Francfort ;
 ```bash
 pnpm typecheck   # TypeScript strict partout
 pnpm lint
-pnpm test        # Vitest (règles métier, dates en heure de Paris)
-pnpm --filter @ronde/web test:e2e   # Playwright : parcours complets dans un vrai navigateur
+pnpm test        # Vitest : règles métier, dates en heure de Paris, file de synchronisation
+pnpm --filter @ronde/web test:e2e      # Playwright : back-office
+pnpm --filter @ronde/mobile test:e2e   # Playwright : app technicien, réseau coupé puis rétabli
 ```
 
-Les tests E2E couvrent la connexion, les redirections, le rôle technicien, la création avec validation, l'annulation, les filtres, le déplacement au clavier et à la souris dans le planning. Ils **échouent aussi en cas d'erreur dans la console du navigateur** (hydratation, exceptions).
+- **Back-office** : connexion, redirections, rôle technicien, création avec validation, annulation, filtres, déplacement au clavier et à la souris dans le planning. Les tests **échouent aussi en cas d'erreur dans la console du navigateur** (hydratation, exceptions).
+- **App technicien** (version web, téléphone simulé) : une intervention complète faite **hors ligne** — départ, arrivée, photo, compte rendu, signature, clôture — puis retour du réseau : l'état est vérifié **en base**, et une seconde synchronisation ne crée aucun doublon. Second scénario : le bureau annule l'intervention pendant la coupure, l'app le signale.
 
 La CI GitHub Actions exécute tout cela à chaque push et pull request, E2E compris (Postgres en service, Chromium headless).
 
@@ -93,8 +115,8 @@ La CI GitHub Actions exécute tout cela à chaque push et pull request, E2E comp
 
 - [x] **S1** — Monorepo, CI, modèle de données, API GraphQL (requêtes, mutations, temps réel), données de démo, règles métier testées
 - [x] **S2** — Authentification, back-office : tableau de bord, planning glisser-déposer, liste, fiche, création, temps réel, tests E2E
-- [ ] **S3** — App technicien : journée, statuts, photos, signature, hors ligne
-- [ ] **S4** — Carte, notifications, tests E2E mobile (Maestro), audit accessibilité et performance, déploiement
+- [x] **S3** — App technicien : journée, statuts, checklist, photos, signature, compte rendu, hors ligne, E2E
+- [ ] **S4** — Carte, notifications push, build installable (EAS), audit accessibilité et performance
 
 ## Roadmap (hors V1)
 

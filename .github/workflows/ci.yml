@@ -30,7 +30,7 @@ jobs:
       - run: pnpm --filter @ronde/web build
 
   e2e:
-    name: Tests E2E (Playwright)
+    name: Tests E2E (back-office + app mobile hors ligne)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -44,7 +44,9 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
       BETTER_AUTH_SECRET: ci-secret-not-used-anywhere-else-0123456789
       BETTER_AUTH_URL: http://localhost:3000
-      CORS_ORIGINS: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8081
+      # les tests mobiles préparent et vérifient les données via l'en-tête x-dev-user
+      ALLOW_DEV_IMPERSONATION: "true"
       PLAYWRIGHT_CHANNEL: chromium
     steps:
       - uses: actions/checkout@v7
@@ -57,10 +59,15 @@ jobs:
       - run: pnpm codegen
       - run: pnpm db:deploy && pnpm db:seed # migrations versionnées, comme en production
       - run: pnpm --filter @ronde/web exec playwright install --with-deps chromium
-      - run: pnpm --filter @ronde/web test:e2e
+      - name: Back-office
+        run: pnpm --filter @ronde/web test:e2e
+      - name: App technicien (version web, réseau coupé puis rétabli)
+        run: pnpm --filter @ronde/mobile test:e2e
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
-          path: apps/web/playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/mobile/playwright-report
           retention-days: 7

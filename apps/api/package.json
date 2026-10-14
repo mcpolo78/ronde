@@ -9,7 +9,7 @@
     "codegen": "prisma generate && tsx scripts/print-schema.ts",
     "typecheck": "tsc",
     "test": "vitest run --passWithNoTests",
-    "db:dev": "prisma dev --name ronde --detach",
+    "db:dev": "tsx scripts/db-dev.ts",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
@@ -37,6 +37,7 @@
     "@types/node": "^24.19.2",
     "@types/pg": "^8.15.5",
     "dotenv": "^17.2.3",
+    "embedded-postgres": "17.10.0-beta.17",
     "prisma": "7.10.0",
     "typescript": "~6.0.3",
     "vitest": "^5.0.4"

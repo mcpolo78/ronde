@@ -6,7 +6,7 @@
  */
 import { fakerFR as faker } from "@faker-js/faker";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { dayKey, zonedDateTime } from "@ronde/domain";
+import { buildSignatureSvg, dayKey, zonedDateTime, type SignatureStrokes } from "@ronde/domain";
 import { hashPassword } from "better-auth/crypto";
 import "dotenv/config";
 import type { InterventionStatus, Priority } from "../src/generated/prisma/client";
@@ -41,6 +41,26 @@ const CITIES = [
 ];
 
 const minutes = (n: number) => n * 60_000;
+
+/** Signature manuscrite plausible : deux ou trois tracés ondulés de gauche à droite. */
+function fakeSignature(): SignatureStrokes {
+  const width = 320;
+  const height = 120;
+  const strokes: number[][] = [];
+  let x = faker.number.int({ min: 20, max: 40 });
+  for (let s = 0; s < faker.number.int({ min: 2, max: 3 }); s++) {
+    const points: number[] = [];
+    const length = faker.number.int({ min: 60, max: 110 });
+    const amplitude = faker.number.int({ min: 12, max: 30 });
+    const phase = faker.number.float({ min: 0, max: Math.PI });
+    for (let t = 0; t <= length; t += 4) {
+      points.push(x + t, 60 + Math.sin(t / 9 + phase) * amplitude + Math.cos(t / 23) * 8);
+    }
+    strokes.push(points);
+    x += length + faker.number.int({ min: 6, max: 18 });
+  }
+  return { width, height, strokes };
+}
 
 /** Heure de Paris pour un jour donné, quel que soit le fuseau de la machine qui exécute le seed. */
 function atTime(day: Date, hour: number, minute = 0) {
@@ -223,9 +243,14 @@ async function main() {
           if (status === "DONE") {
             const doneAt = new Date(arrival.getTime() + minutes(template.minutes + faker.number.int({ min: -15, max: 30 })));
             events.push({ status: "DONE", at: doneAt, authorId: tech.id });
+            // vraie signature, construite comme celles du mobile (tracés → SVG côté serveur)
+            const svg = Buffer.from(buildSignatureSvg(fakeSignature()));
+            const file = await prisma.storedFile.create({
+              data: { clientId: `seed-sig-${intervention.id}`, companyId: company.id, contentType: "image/svg+xml", size: svg.byteLength, data: svg },
+            });
             await prisma.signature.create({
               data: {
-                url: "https://placehold.co/400x160/png?text=Signature",
+                url: `/api/files/${file.id}`,
                 signerName: faker.person.fullName(),
                 signedAt: doneAt,
                 interventionId: intervention.id,

@@ -16,3 +16,6 @@ ios/
 android/
 # Prisma generated client
 apps/api/src/generated/
+
+# Base PostgreSQL locale (pnpm db:dev)
+apps/api/.pgdata/

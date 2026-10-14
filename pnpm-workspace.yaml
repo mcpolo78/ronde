@@ -8,6 +8,11 @@ allowBuilds:
   prisma: true
   "@prisma/engines": true
   esbuild: true
+  # binaires PostgreSQL de la base locale (apps/api/scripts/db-dev.ts)
+  "@embedded-postgres/windows-x64": true
+  "@embedded-postgres/linux-x64": true
+  "@embedded-postgres/darwin-arm64": true
+  "@embedded-postgres/darwin-x64": true
 
 minimumReleaseAgeExclude:
   - "@turbo/darwin-64@2.11.8"
