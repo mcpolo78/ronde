@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/api/auth/:path*", destination: `${API_URL}/api/auth/:path*` },
       { source: "/api/graphql", destination: `${API_URL}/graphql` },
+      // photos et signatures : servies sur le même domaine, le cookie de session suit
+      { source: "/api/files/:id", destination: `${API_URL}/api/files/:id` },
     ];
   },
   turbopack: {

@@ -17,6 +17,7 @@
     "db:deploy": "prisma migrate deploy"
   },
   "dependencies": {
+    "@better-auth/expo": "1.7.7",
     "@pothos/core": "^4.15.1",
     "@pothos/plugin-prisma": "^4.17.0",
     "@prisma/adapter-pg": "7.10.0",

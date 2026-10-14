@@ -41,6 +41,7 @@ model Company {
   users         User[]
   customers     Customer[]
   interventions Intervention[]
+  files         StoredFile[]
 }
 
 /// Champs compatibles Better Auth (id, email, name, emailVerified, image).
@@ -180,6 +181,22 @@ model ChecklistItem {
   intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
 
   @@index([interventionId])
+}
+
+/// Fichier envoyé par le mobile (photo d'intervention, signature).
+/// Stocké en base pour la démo ; l'accès passe par une interface remplaçable par un stockage objet (S3/R2).
+model StoredFile {
+  id          String   @id @default(cuid())
+  /// Identifiant généré sur le mobile : un envoi rejoué renvoie le même fichier.
+  clientId    String   @unique
+  contentType String
+  size        Int
+  data        Bytes
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
 }
 
 model Photo {

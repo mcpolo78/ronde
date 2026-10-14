@@ -1,3 +1,11 @@
+input AddPhotoInput {
+  caption: String
+  clientId: String!
+  fileId: ID!
+  interventionId: ID!
+  takenAt: DateTime!
+}
+
 input ChangeStatusInput {
   at: DateTime!
   clientId: String!
@@ -76,13 +84,25 @@ enum InterventionStatus {
 }
 
 type Mutation {
+  """
+  Rattache une photo déjà envoyée (POST /api/files) à une intervention. Idempotent (clientId).
+  """
+  addPhoto(input: AddPhotoInput!): Photo!
   changeStatus(input: ChangeStatusInput!): Intervention!
   createIntervention(input: CreateInterventionInput!): Intervention!
+
+  """Compte rendu du technicien (remplace le précédent)."""
+  saveReport(interventionId: ID!, report: String!): Intervention!
 
   """
   Replanifie et/ou réassigne une intervention (glisser-déposer du planning).
   """
   scheduleIntervention(id: ID!, scheduledEnd: DateTime!, scheduledStart: DateTime!, technicianId: ID): Intervention!
+
+  """
+  Enregistre la signature du client (tracés). Le SVG est construit côté serveur. Rejouable sans effet de bord.
+  """
+  signIntervention(input: SignInterventionInput!): Intervention!
   toggleChecklistItem(checked: Boolean!, id: ID!): ChecklistItem!
 }
 
@@ -125,11 +145,24 @@ enum Role {
   TECHNICIAN
 }
 
+input SignInterventionInput {
+  height: Int!
+  interventionId: ID!
+  signedAt: DateTime!
+  signerName: String!
+  strokes: [SignatureStrokeInput!]!
+  width: Int!
+}
+
 type Signature {
   id: ID!
   signedAt: DateTime!
   signerName: String!
   url: String!
+}
+
+input SignatureStrokeInput {
+  points: [Float!]!
 }
 
 type Site {

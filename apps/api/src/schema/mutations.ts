@@ -1,6 +1,8 @@
-import { canTransition, createInterventionSchema } from "@ronde/domain";
+import { buildSignatureSvg, canTransition, createInterventionSchema, signatureStrokesSchema } from "@ronde/domain";
 import { GraphQLError } from "graphql";
 import { builder, requireViewer } from "../builder";
+import type { Viewer } from "../context";
+import { fileUrl } from "../files";
 import { prisma } from "../db";
 import { pubsub } from "../pubsub";
 import { InterventionStatusEnum, PriorityEnum } from "./enums";
@@ -27,6 +29,46 @@ const ChangeStatusInput = builder.inputType("ChangeStatusInput", {
     clientId: t.string({ required: true }),
   }),
 });
+
+const AddPhotoInput = builder.inputType("AddPhotoInput", {
+  fields: (t) => ({
+    interventionId: t.id({ required: true }),
+    /** UUID généré par le mobile : rend la mutation idempotente. */
+    clientId: t.string({ required: true }),
+    fileId: t.id({ required: true }),
+    caption: t.string(),
+    takenAt: t.field({ type: "DateTime", required: true }),
+  }),
+});
+
+const SignatureStrokeInput = builder.inputType("SignatureStrokeInput", {
+  fields: (t) => ({
+    /** Liste plate [x1, y1, x2, y2, …] dans le repère width × height. */
+    points: t.floatList({ required: true }),
+  }),
+});
+
+const SignInterventionInput = builder.inputType("SignInterventionInput", {
+  fields: (t) => ({
+    interventionId: t.id({ required: true }),
+    signerName: t.string({ required: true }),
+    signedAt: t.field({ type: "DateTime", required: true }),
+    /** Dimensions de la zone de signature sur l'écran du mobile. */
+    width: t.int({ required: true }),
+    height: t.int({ required: true }),
+    strokes: t.field({ type: [SignatureStrokeInput], required: true }),
+  }),
+});
+
+/** Intervention assignée au technicien connecté (sinon : introuvable). */
+async function ownIntervention(viewer: Viewer, id: string) {
+  const intervention = await prisma.intervention.findFirst({
+    where: { id, companyId: viewer.companyId, technicianId: viewer.id },
+    select: { id: true, status: true, signature: { select: { id: true } } },
+  });
+  if (!intervention) throw notFound();
+  return intervention;
+}
 
 const notFound = () =>
   new GraphQLError("Intervention introuvable", { extensions: { code: "NOT_FOUND" } });
@@ -163,6 +205,108 @@ builder.mutationType({
           prisma.intervention.update({ ...query, where: { id }, data: { status: input.status } }),
         ]);
         pubsub.publish("intervention:updated", viewer.companyId, { interventionId: id });
+        return updated;
+      },
+    }),
+
+    addPhoto: t.prismaField({
+      type: "Photo",
+      description: "Rattache une photo déjà envoyée (POST /api/files) à une intervention. Idempotent (clientId).",
+      args: { input: t.arg({ type: AddPhotoInput, required: true }) },
+      resolve: async (query, _root, { input }, ctx) => {
+        const viewer = requireViewer(ctx, "TECHNICIAN");
+        const replay = await prisma.photo.findUnique({ ...query, where: { clientId: input.clientId } });
+        if (replay) return replay;
+
+        const intervention = await ownIntervention(viewer, String(input.interventionId));
+        if (intervention.status === "CANCELLED") {
+          throw new GraphQLError("Intervention annulée", { extensions: { code: "INVALID_TRANSITION" } });
+        }
+        const file = await prisma.storedFile.findFirst({
+          where: { id: String(input.fileId), companyId: viewer.companyId },
+          select: { id: true },
+        });
+        if (!file) throw new GraphQLError("Fichier introuvable", { extensions: { code: "NOT_FOUND" } });
+
+        const photo = await prisma.photo.create({
+          ...query,
+          data: {
+            clientId: input.clientId,
+            url: fileUrl(file.id),
+            caption: input.caption ?? null,
+            takenAt: input.takenAt,
+            interventionId: intervention.id,
+          },
+        });
+        pubsub.publish("intervention:updated", viewer.companyId, { interventionId: intervention.id });
+        return photo;
+      },
+    }),
+
+    signIntervention: t.prismaField({
+      type: "Intervention",
+      description:
+        "Enregistre la signature du client (tracés). Le SVG est construit côté serveur. Rejouable sans effet de bord.",
+      args: { input: t.arg({ type: SignInterventionInput, required: true }) },
+      resolve: async (query, _root, { input }, ctx) => {
+        const viewer = requireViewer(ctx, "TECHNICIAN");
+        const intervention = await ownIntervention(viewer, String(input.interventionId));
+
+        if (intervention.status === "DONE" && intervention.signature) {
+          // rejeu après clôture : la signature est déjà enregistrée
+          return prisma.intervention.findUniqueOrThrow({ ...query, where: { id: intervention.id } });
+        }
+        if (intervention.status !== "ON_SITE") {
+          throw new GraphQLError("La signature se fait sur place", { extensions: { code: "INVALID_TRANSITION" } });
+        }
+        const parsed = signatureStrokesSchema.safeParse({
+          width: input.width,
+          height: input.height,
+          strokes: input.strokes.map((s) => s.points),
+        });
+        const signerName = input.signerName.trim();
+        if (!parsed.success || signerName.length < 2 || signerName.length > 80) {
+          throw new GraphQLError("Signature invalide", { extensions: { code: "BAD_USER_INPUT" } });
+        }
+
+        const svg = new TextEncoder().encode(buildSignatureSvg(parsed.data));
+        const fileClientId = `sig-${intervention.id}`;
+        const file = await prisma.storedFile.upsert({
+          where: { clientId: fileClientId },
+          create: {
+            clientId: fileClientId,
+            companyId: viewer.companyId,
+            contentType: "image/svg+xml",
+            size: svg.byteLength,
+            data: Buffer.from(svg),
+          },
+          update: { data: Buffer.from(svg), size: svg.byteLength },
+          select: { id: true },
+        });
+        const data = { url: fileUrl(file.id), signerName, signedAt: input.signedAt };
+        await prisma.signature.upsert({
+          where: { interventionId: intervention.id },
+          create: { ...data, interventionId: intervention.id },
+          update: data,
+        });
+        pubsub.publish("intervention:updated", viewer.companyId, { interventionId: intervention.id });
+        return prisma.intervention.findUniqueOrThrow({ ...query, where: { id: intervention.id } });
+      },
+    }),
+
+    saveReport: t.prismaField({
+      type: "Intervention",
+      description: "Compte rendu du technicien (remplace le précédent).",
+      args: { interventionId: t.arg.id({ required: true }), report: t.arg.string({ required: true }) },
+      resolve: async (query, _root, args, ctx) => {
+        const viewer = requireViewer(ctx, "TECHNICIAN");
+        const intervention = await ownIntervention(viewer, String(args.interventionId));
+        if (intervention.status === "CANCELLED") {
+          throw new GraphQLError("Intervention annulée", { extensions: { code: "INVALID_TRANSITION" } });
+        }
+        const report = args.report.trim().slice(0, 4000) || null;
+        const updated = await prisma.intervention.update({ ...query, where: { id: intervention.id }, data: { report } });
+        pubsub.publish("intervention:updated", viewer.companyId, { interventionId: intervention.id });
         return updated;
       },
     }),

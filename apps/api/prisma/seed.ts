@@ -69,6 +69,7 @@ async function main() {
   await prisma.verification.deleteMany();
   await prisma.statusEvent.deleteMany();
   await prisma.photo.deleteMany();
+  await prisma.storedFile.deleteMany();
   await prisma.signature.deleteMany();
   await prisma.checklistItem.deleteMany();
   await prisma.intervention.deleteMany();

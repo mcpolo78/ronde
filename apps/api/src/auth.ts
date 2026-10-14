@@ -1,3 +1,4 @@
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./db";
@@ -6,6 +7,9 @@ export const trustedOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:300
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
+
+/** Origines de l'app mobile : schéma de l'app (build) et Expo Go (développement). */
+const mobileOrigins = ["ronde://", ...(process.env.NODE_ENV === "production" ? [] : ["exp://"])];
 
 /**
  * Authentification email + mot de passe.
@@ -17,7 +21,9 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
   basePath: "/api/auth",
-  trustedOrigins,
+  trustedOrigins: [...trustedOrigins, ...mobileOrigins],
+  // Le mobile envoie le cookie de session dans un en-tête (stockage sécurisé du téléphone)
+  plugins: [expo()],
   database: prismaAdapter(prisma, { provider: "postgresql", transaction: true }),
   emailAndPassword: {
     enabled: true,
