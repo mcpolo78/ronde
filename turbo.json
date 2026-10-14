@@ -2,23 +2,42 @@
   "$schema": "https://turborepo.com/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "codegen"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "dependsOn": [
+        "^build",
+        "codegen"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
     },
     "codegen": {
       "cache": false
     },
     "dev": {
-      "dependsOn": ["codegen"],
+      "dependsOn": [
+        "codegen"
+      ],
       "cache": false,
       "persistent": true
     },
     "lint": {},
     "typecheck": {
-      "dependsOn": ["codegen"]
+      "dependsOn": [
+        "codegen"
+      ]
     },
     "test": {
-      "dependsOn": ["codegen"]
+      "dependsOn": [
+        "codegen"
+      ]
+    },
+    "@ronde/graphql#codegen": {
+      "dependsOn": [
+        "@ronde/api#codegen"
+      ],
+      "cache": false
     }
   }
 }

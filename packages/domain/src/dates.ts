@@ -39,6 +39,16 @@ export function dayKey(date: Date | string): string {
   return format(inZone(date), "yyyy-MM-dd");
 }
 
+/** Instant correspondant à un jour (`yyyy-MM-dd`) et une heure (`HH:mm`) à Paris (formulaires). */
+export function zonedDateTime(day: string, time: string): Date {
+  const [y, m, d] = day.split("-").map(Number);
+  const [hh, mm] = time.split(":").map(Number);
+  if ([y, m, d, hh, mm].some((n) => n === undefined || Number.isNaN(n))) {
+    throw new RangeError(`Date ou heure invalide : ${day} ${time}`);
+  }
+  return new Date(new TZDate(y!, m! - 1, d!, hh!, mm!, COMPANY_TIME_ZONE));
+}
+
 /**
  * Déplace un créneau vers un autre jour en conservant l'heure locale et la durée
  * (glisser-déposer du planning).

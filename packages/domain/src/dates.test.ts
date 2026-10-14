@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayKey, dayRange, moveToDay, weekRange, workDaysOfWeek } from "./dates";
+import { dayKey, dayRange, moveToDay, weekRange, workDaysOfWeek, zonedDateTime } from "./dates";
 
 describe("dates (fuseau Europe/Paris)", () => {
   it("calcule la journée parisienne, même tard le soir en UTC", () => {
@@ -25,6 +25,12 @@ describe("dates (fuseau Europe/Paris)", () => {
       "2026-10-15",
       "2026-10-16",
     ]);
+  });
+
+  it("convertit une saisie date + heure parisienne en instant", () => {
+    expect(zonedDateTime("2026-10-14", "09:30").toISOString()).toBe("2026-10-14T07:30:00.000Z");
+    expect(zonedDateTime("2026-12-01", "09:30").toISOString()).toBe("2026-12-01T08:30:00.000Z");
+    expect(() => zonedDateTime("2026-10-14", "")).toThrow(RangeError);
   });
 
   it("déplace un créneau en gardant l'heure locale et la durée", () => {

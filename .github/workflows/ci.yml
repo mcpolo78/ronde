@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   check:
+    name: Types, lint, tests unitaires, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -21,7 +22,45 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm codegen
+      - name: Le code généré est à jour
+        run: git diff --exit-code -- packages/graphql
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm --filter @ronde/web build
+
+  e2e:
+    name: Tests E2E (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      BETTER_AUTH_SECRET: ci-secret-not-used-anywhere-else-0123456789
+      BETTER_AUTH_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
+      PLAYWRIGHT_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - run: pnpm db:push && pnpm db:seed
+      - run: pnpm --filter @ronde/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @ronde/web test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7

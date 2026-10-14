@@ -6,6 +6,7 @@
  */
 import { fakerFR as faker } from "@faker-js/faker";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { dayKey, zonedDateTime } from "@ronde/domain";
 import { hashPassword } from "better-auth/crypto";
 import "dotenv/config";
 import type { InterventionStatus, Priority } from "../src/generated/prisma/client";
@@ -41,10 +42,10 @@ const CITIES = [
 
 const minutes = (n: number) => n * 60_000;
 
+/** Heure de Paris pour un jour donné, quel que soit le fuseau de la machine qui exécute le seed. */
 function atTime(day: Date, hour: number, minute = 0) {
-  const d = new Date(day);
-  d.setHours(hour, minute, 0, 0);
-  return d;
+  const hhmm = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  return zonedDateTime(dayKey(day), hhmm);
 }
 
 function mondayOf(d: Date) {
@@ -161,7 +162,7 @@ async function main() {
         const scheduledStart = cursor;
         const scheduledEnd = new Date(scheduledStart.getTime() + minutes(template.minutes));
         cursor = new Date(scheduledEnd.getTime() + minutes(faker.helpers.arrayElement([30, 45, 60])));
-        if (cursor.getHours() >= 18) break;
+        if (cursor >= atTime(day, 18)) break;
 
         const isPast = scheduledEnd < now;
         const isCurrent = scheduledStart <= now && now < scheduledEnd;

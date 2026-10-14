@@ -3,8 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "description": "Schéma GraphQL exporté par l'API (source des types côté web et mobile).",
-  "files": ["schema.graphql"],
+  "files": [
+    "schema.graphql",
+    "src"
+  ],
   "exports": {
+    ".": "./src/index.ts",
     "./schema.graphql": "./schema.graphql"
+  },
+  "dependencies": {
+    "gql.tada": "^1.11.4"
+  },
+  "devDependencies": {
+    "@ronde/config": "workspace:*",
+    "graphql": "^16.14.2",
+    "typescript": "~6.0.3"
+  },
+  "type": "module",
+  "scripts": {
+    "codegen": "gql-tada generate output",
+    "typecheck": "tsc"
   }
 }
