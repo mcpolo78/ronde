@@ -42,7 +42,7 @@ test.describe("souris", () => {
 
 test("glisser-déposer une intervention vers les non assignées", async ({ page }) => {
   const card = row(page, "Mehdi Haddad").locator("[aria-roledescription='draggable']").first();
-  const reference = (await card.locator("..").getByRole("button", { name: /^Déplacer INT-/ }).getAttribute("aria-label"))!.replace("Déplacer ", "");
+  const reference = (await card.getAttribute("aria-label"))!.replace("Glisser ", "");
   const target = row(page, "Non assignées").getByRole("cell").first();
 
   const from = (await card.boundingBox())!;

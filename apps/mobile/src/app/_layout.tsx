@@ -39,7 +39,7 @@ export default function RootLayout() {
           />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ title: "Connexion — Ronde", headerShown: false }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>

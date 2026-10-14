@@ -233,25 +233,42 @@ function Cell({
 
 function DraggableCard({ intervention, onMove }: { intervention: InterventionRow; onMove: (i: InterventionRow) => void }) {
   const movable = isMovable(intervention);
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: intervention.id, disabled: !movable });
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
+    id: intervention.id,
+    disabled: !movable,
+  });
+
+  // La carte entière se saisit à la souris ou au doigt (écouteurs seuls, pas de rôle) ;
+  // au clavier, c'est la poignée, un vrai bouton : aucun contrôle n'est imbriqué dans un autre.
+  const handle = movable ? (
+    <button
+      type="button"
+      ref={setActivatorNodeRef}
+      {...attributes}
+      {...listeners}
+      aria-label={`Glisser ${intervention.reference}`}
+      className="-ml-1 flex size-6 shrink-0 cursor-grab items-center justify-center rounded text-muted hover:bg-surface-muted active:cursor-grabbing"
+    >
+      <GripVertical aria-hidden className="size-3.5" />
+    </button>
+  ) : null;
 
   return (
-    <div ref={setNodeRef} className={clsx("group relative", isDragging && "opacity-40")}>
-      <div
-        {...(movable ? { ...listeners, ...attributes } : {})}
-        className={movable ? "cursor-grab touch-none active:cursor-grabbing" : undefined}
-        title={movable ? "Glisser pour déplacer" : "Intervention commencée ou clôturée : non déplaçable"}
-      >
-        <CardBody intervention={intervention} movable={movable} />
-      </div>
+    <div
+      ref={setNodeRef}
+      {...(movable ? listeners : {})}
+      className={clsx("group relative", movable && "cursor-grab touch-none active:cursor-grabbing", isDragging && "opacity-40")}
+      title={movable ? "Glisser pour déplacer" : "Intervention commencée ou clôturée : non déplaçable"}
+    >
+      <CardBody intervention={intervention} handle={handle} />
       {movable && (
         <button
           type="button"
           onClick={() => onMove(intervention)}
-          className="absolute top-1 right-1 rounded bg-surface p-1 text-muted opacity-0 shadow-xs group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
+          className="absolute top-1 right-1 flex size-6 items-center justify-center rounded bg-surface text-muted opacity-0 shadow-xs group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
           aria-label={`Déplacer ${intervention.reference}`}
         >
-          <MoveRight aria-hidden className="size-3.5" />
+          <MoveRight aria-hidden className="size-4" />
         </button>
       )}
     </div>
@@ -269,27 +286,33 @@ const BORDER: Record<InterventionRow["status"], string> = {
 function CardBody({
   intervention: i,
   lifted,
-  movable,
+  handle,
 }: {
   intervention: InterventionRow;
   lifted?: boolean;
-  movable?: boolean;
+  handle?: React.ReactNode;
 }) {
+  const cancelled = i.status === "CANCELLED";
   return (
     <div
       className={clsx(
         "rounded-md border border-l-4 border-border bg-surface px-2 py-1.5 text-xs",
         BORDER[i.status],
-        i.status === "CANCELLED" && "opacity-60",
+        // annulée : fond atténué et texte barré, mais contrastes intacts (pas d'opacité)
+        cancelled && "border-dashed bg-surface-muted",
         lifted && "rotate-1 shadow-lg",
         (i.priority === "URGENT" || i.priority === "HIGH") && "ring-1 ring-danger/50",
       )}
     >
-      <p className="flex items-center gap-1 font-medium tabular-nums">
-        {(movable || lifted) && <GripVertical aria-hidden className="-ml-1 size-3 text-muted" />}
+      <p className="flex min-h-6 items-center gap-1 font-medium tabular-nums">
+        {handle ?? (lifted && <GripVertical aria-hidden className="-ml-1 size-3.5 text-muted" />)}
         {formatTimeRange(i.scheduledStart, i.scheduledEnd)}
       </p>
-      <Link href={`/interventions/${i.id}`} className="block truncate hover:underline" draggable={false}>
+      <Link
+        href={`/interventions/${i.id}`}
+        className={clsx("block truncate hover:underline", cancelled && "line-through")}
+        draggable={false}
+      >
         {i.type}
       </Link>
       <p className="truncate text-muted">

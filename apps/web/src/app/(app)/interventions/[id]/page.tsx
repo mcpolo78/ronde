@@ -102,14 +102,14 @@ async function InterventionDetail({ params, searchParams }: Props) {
                 )}
               </Info>
               {i.description && (
-                <div className="sm:col-span-2">
-                  <Info label="Description">{i.description}</Info>
-                </div>
+                <Info label="Description" className="sm:col-span-2">
+                  {i.description}
+                </Info>
               )}
               {i.report && (
-                <div className="sm:col-span-2">
-                  <Info label="Compte rendu du technicien">{i.report}</Info>
-                </div>
+                <Info label="Compte rendu du technicien" className="sm:col-span-2">
+                  {i.report}
+                </Info>
               )}
             </dl>
           </Card>
@@ -226,9 +226,9 @@ async function InterventionDetail({ params, searchParams }: Props) {
   );
 }
 
-function Info({ label, children }: { label: string; children: React.ReactNode }) {
+function Info({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div>
+    <div className={className}>
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="mt-0.5 text-sm">{children}</dd>
     </div>

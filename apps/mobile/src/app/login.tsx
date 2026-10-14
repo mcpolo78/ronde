@@ -1,3 +1,4 @@
+import Head from "expo-router/head";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -36,6 +37,10 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+      {/* titre de l'onglet sur le web (cet écran n'a pas d'en-tête) */}
+      <Head>
+        <title>Connexion — Ronde</title>
+      </Head>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
         <Text style={[styles.logo, { color: theme.foreground }]}>
           <Text style={{ color: theme.brand }}>● </Text>Ronde
