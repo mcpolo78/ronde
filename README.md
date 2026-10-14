@@ -4,6 +4,8 @@
 
 > Planifiez, suivez et clôturez les interventions de vos techniciens — même sans réseau.
 
+**Démo en ligne : <https://ronde-six.vercel.app>** — compte `claire@ronde.demo`, mot de passe `demo-ronde`. Données régénérées chaque nuit ; si l’API était en veille, le premier chargement peut prendre une trentaine de secondes.
+
 Ronde est une plateforme métier pour les PME de maintenance (chauffage, bornes de recharge, VMC…) :
 
 - **Back-office web** (Next.js) pour la responsable planning : planning glisser-déposer, carte, suivi en direct, indicateurs.

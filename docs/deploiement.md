@@ -17,8 +17,8 @@ Les trois services sont dans la même région : chaque page fait 1 à 3 appels s
 
 1. <https://vercel.com/new> → importer `mcpolo78/ronde`.
 2. **Root Directory** : `apps/web` (le reste est lu dans `vercel.json`).
-3. Variable d'environnement : `API_URL` = `https://ronde-api.onrender.com` (URL Render de l'étape 3).
-4. Déployer et noter l'URL de production, par exemple `https://ronde.vercel.app`.
+3. Variable d'environnement : `API_URL` = `https://ronde-api-nc26.onrender.com` (URL Render de l'étape 3).
+4. Déployer et noter l'URL de production, ici `https://ronde-six.vercel.app`.
 
 ## 3. API — Render
 
@@ -27,9 +27,9 @@ Les trois services sont dans la même région : chaque page fait 1 à 3 appels s
    - `DATABASE_URL` : chaîne Neon ;
    - `BETTER_AUTH_URL` et `CORS_ORIGINS` : URL Vercel de l'étape 2.
 3. Le build installe l'API, génère le client Prisma et **applique les migrations** (`prisma migrate deploy`).
-4. Vérifier : `https://ronde-api.onrender.com/health` répond `ok`.
+4. Vérifier : `https://ronde-api-nc26.onrender.com/health` répond `ok`.
 
-Si l'URL Render est différente de `ronde-api.onrender.com`, mettre à jour `API_URL` sur Vercel et redéployer.
+Si l'URL Render est différente de `ronde-api-nc26.onrender.com`, mettre à jour `API_URL` sur Vercel et redéployer.
 
 ## 4. Données de démo et réveil de l'API — GitHub Actions
 
@@ -42,7 +42,7 @@ Il ne s'active qu'une fois configuré :
 
 ```bash
 gh secret set DEMO_DATABASE_URL          # coller la chaîne Neon quand elle est demandée
-gh variable set DEMO_API_URL --body "https://ronde-api.onrender.com"
+gh variable set DEMO_API_URL --body "https://ronde-api-nc26.onrender.com"
 gh workflow run demo.yml                 # premier remplissage de la base
 ```
 
