@@ -1,0 +1,162 @@
+input ChangeStatusInput {
+  at: DateTime!
+  clientId: String!
+  interventionId: ID!
+  status: InterventionStatus!
+}
+
+type ChecklistItem {
+  checked: Boolean!
+  id: ID!
+  label: String!
+  position: Int!
+}
+
+input CreateInterventionInput {
+  description: String
+  priority: Priority
+  scheduledEnd: DateTime!
+  scheduledStart: DateTime!
+  siteId: ID!
+  technicianId: ID
+  type: String!
+}
+
+type Customer {
+  email: String
+  id: ID!
+  name: String!
+  phone: String
+  sites: [Site!]!
+}
+
+"""
+Indicateurs de la période, calculés à partir de l'historique des statuts.
+"""
+type Dashboard {
+  avgArrivalDelayMinutes: Float
+  avgOnSiteMinutes: Float
+  done: Int!
+  firstTimeFixRate: Float
+  inProgress: Int!
+  total: Int!
+}
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
+
+type Intervention {
+  checklist: [ChecklistItem!]!
+  description: String
+  events: [StatusEvent!]!
+  id: ID!
+  photos: [Photo!]!
+  priority: Priority!
+  reference: String!
+  report: String
+  scheduledEnd: DateTime!
+  scheduledStart: DateTime!
+  signature: Signature
+  site: Site!
+  status: InterventionStatus!
+  technician: User
+  type: String!
+  updatedAt: DateTime!
+  visitNumber: Int!
+}
+
+enum InterventionStatus {
+  CANCELLED
+  DONE
+  EN_ROUTE
+  ON_SITE
+  PLANNED
+}
+
+type Mutation {
+  changeStatus(input: ChangeStatusInput!): Intervention!
+  createIntervention(input: CreateInterventionInput!): Intervention!
+
+  """
+  Replanifie et/ou réassigne une intervention (glisser-déposer du planning).
+  """
+  scheduleIntervention(id: ID!, scheduledEnd: DateTime!, scheduledStart: DateTime!, technicianId: ID): Intervention!
+  toggleChecklistItem(checked: Boolean!, id: ID!): ChecklistItem!
+}
+
+type Photo {
+  caption: String
+  id: ID!
+  takenAt: DateTime!
+  url: String!
+}
+
+enum Priority {
+  HIGH
+  LOW
+  NORMAL
+  URGENT
+}
+
+type Query {
+  dashboard(from: DateTime!, to: DateTime!): Dashboard!
+  intervention(id: ID!): Intervention
+
+  """Interventions de l'entreprise sur une période (vue planning et liste)."""
+  interventions(from: DateTime!, status: [InterventionStatus!], technicianId: ID, to: DateTime!): [Intervention!]!
+  me: User
+
+  """
+  Interventions du technicien connecté pour une journée (préchargées pour le hors ligne).
+  """
+  myDay(date: DateTime): [Intervention!]!
+  technicians: [User!]!
+}
+
+enum Role {
+  MANAGER
+  TECHNICIAN
+}
+
+type Signature {
+  id: ID!
+  signedAt: DateTime!
+  signerName: String!
+  url: String!
+}
+
+type Site {
+  accessNotes: String
+  address: String!
+  city: String!
+  customer: Customer!
+  id: ID!
+  label: String!
+  latitude: Float!
+  longitude: Float!
+  postalCode: String!
+}
+
+type StatusEvent {
+  at: DateTime!
+  author: User!
+  id: ID!
+  status: InterventionStatus!
+}
+
+type Subscription {
+  """
+  Émis à chaque création, replanification ou changement de statut (back-office en direct).
+  """
+  interventionUpdated: Intervention!
+}
+
+type User {
+  email: String!
+  id: ID!
+  name: String!
+  phone: String
+  role: Role!
+}

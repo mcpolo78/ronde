@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+generator pothos {
+  provider     = "prisma-pothos-types"
+  clientOutput = "./prisma"
+  output       = "../src/generated/pothos-types.ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MANAGER
+  TECHNICIAN
+}
+
+enum InterventionStatus {
+  PLANNED
+  EN_ROUTE
+  ON_SITE
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+/// Entreprise cliente de Ronde (la PME de maintenance).
+model Company {
+  id            String         @id @default(cuid())
+  name          String
+  createdAt     DateTime       @default(now())
+  users         User[]
+  customers     Customer[]
+  interventions Intervention[]
+}
+
+/// Champs compatibles Better Auth (id, email, name, emailVerified, image).
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  emailVerified Boolean        @default(false)
+  image         String?
+  role          Role
+  phone         String?
+  companyId     String
+  company       Company        @relation(fields: [companyId], references: [id])
+  assignments   Intervention[] @relation("assignedTechnician")
+  statusEvents  StatusEvent[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([companyId])
+}
+
+/// Client final de la PME (syndic, commerce, particulier…).
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  sites     Site[]
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+/// Adresse d'intervention.
+model Site {
+  id            String         @id @default(cuid())
+  label         String
+  address       String
+  city          String
+  postalCode    String
+  latitude      Float
+  longitude     Float
+  accessNotes   String?
+  customerId    String
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  interventions Intervention[]
+
+  @@index([customerId])
+}
+
+model Intervention {
+  id             String             @id @default(cuid())
+  /// Référence lisible, ex. INT-2026-0042
+  reference      String             @unique
+  type           String
+  description    String?
+  priority       Priority           @default(NORMAL)
+  status         InterventionStatus @default(PLANNED)
+  scheduledStart DateTime
+  scheduledEnd   DateTime
+  /// 1 = première visite ; >1 = retour sur un problème non résolu
+  visitNumber    Int                @default(1)
+  report         String?
+  companyId      String
+  company        Company            @relation(fields: [companyId], references: [id])
+  siteId         String
+  site           Site               @relation(fields: [siteId], references: [id])
+  technicianId   String?
+  technician     User?              @relation("assignedTechnician", fields: [technicianId], references: [id])
+  checklist      ChecklistItem[]
+  photos         Photo[]
+  signature      Signature?
+  events         StatusEvent[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([companyId, scheduledStart])
+  @@index([technicianId, scheduledStart])
+}
+
+model ChecklistItem {
+  id             String       @id @default(cuid())
+  label          String
+  position       Int
+  checked        Boolean      @default(false)
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+}
+
+model Photo {
+  id             String       @id @default(cuid())
+  /// Identifiant généré sur le mobile : rend l'envoi idempotent après une resynchronisation.
+  clientId       String       @unique
+  url            String
+  caption        String?
+  takenAt        DateTime
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+}
+
+model Signature {
+  id             String       @id @default(cuid())
+  url            String
+  signerName     String
+  signedAt       DateTime
+  interventionId String       @unique
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+}
+
+/// Historique horodaté des statuts : base du calcul des indicateurs.
+model StatusEvent {
+  id             String             @id @default(cuid())
+  /// Identifiant généré sur le mobile : une mutation rejouée hors ligne n'est appliquée qu'une fois.
+  clientId       String?            @unique
+  status         InterventionStatus
+  at             DateTime
+  interventionId String
+  intervention   Intervention       @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User               @relation(fields: [authorId], references: [id])
+
+  @@index([interventionId, at])
+}

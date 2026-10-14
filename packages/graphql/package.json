@@ -1,0 +1,10 @@
+{
+  "name": "@ronde/graphql",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Schéma GraphQL exporté par l'API (source des types côté web et mobile).",
+  "files": ["schema.graphql"],
+  "exports": {
+    "./schema.graphql": "./schema.graphql"
+  }
+}
