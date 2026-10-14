@@ -17,6 +17,8 @@ export const InterventionRowFragment = graphql(`
       id
       label
       city
+      latitude
+      longitude
       customer {
         id
         name

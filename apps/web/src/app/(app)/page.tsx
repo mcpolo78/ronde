@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { InterventionsMap } from "@/components/interventions-map";
 import { Card, EmptyState, PageHeader, PriorityBadge, Skeleton, StatusBadge } from "@/components/ui";
 import { gql } from "@/lib/api";
 import { formatLongDay, formatMinutes, formatPercent, formatTimeRange } from "@/lib/format";
@@ -151,6 +152,13 @@ async function Dashboard() {
           </Card>
         </div>
       </div>
+
+      <Card aria-labelledby="map-title" className="mt-6">
+        <h2 id="map-title" className="mb-3 font-semibold">
+          Carte du jour
+        </h2>
+        <InterventionsMap interventions={interventions} />
+      </Card>
     </>
   );
 }

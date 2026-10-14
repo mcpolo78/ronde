@@ -11,6 +11,20 @@ test("le tableau de bord affiche l'activité du jour et les indicateurs", async 
   await expect(page.getByText("En direct")).toBeVisible(); // abonnement temps réel actif
 });
 
+test("la carte du jour place les interventions et s'utilise au clavier", async ({ page }) => {
+  const map = page.getByRole("region", { name: "Carte des interventions du jour" });
+  await expect(map).toBeVisible();
+  const markers = map.getByRole("button", { name: /^\d{2}:\d{2} – \d{2}:\d{2}, / });
+  await expect(markers.first()).toBeVisible({ timeout: 15_000 });
+  expect(await markers.count()).toBeGreaterThan(5);
+
+  await markers.first().focus();
+  await page.keyboard.press("Enter");
+  const popup = page.locator(".maplibregl-popup");
+  await expect(popup).toBeVisible();
+  await expect(popup.getByRole("link")).toHaveAttribute("href", /^\/interventions\/c[a-z0-9]+$/);
+});
+
 test("créer une intervention puis l'annuler", async ({ page }) => {
   await page.getByRole("link", { name: "Nouvelle intervention" }).first().click();
   await expect(page.getByRole("heading", { name: "Nouvelle intervention" })).toBeVisible();
