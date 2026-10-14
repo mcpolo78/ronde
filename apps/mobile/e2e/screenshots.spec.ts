@@ -18,7 +18,9 @@ test("captures de l'app technicien", async ({ page, request }) => {
 
   await page.getByRole("link", { name: /Entretien pompe à chaleur/ }).last().click();
   await page.getByRole("button", { name: "Je pars" }).click();
+  await expect(page.getByText("En route", { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByRole("button", { name: "Je suis arrivé" }).click();
+  await expect(page.getByText("Sur place", { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByTestId("sync-status").filter({ visible: true })).toContainText("À jour");
   await page.screenshot({ path: out("mobile-intervention") });
 

@@ -3,6 +3,7 @@ import { GraphQLError } from "graphql";
 import { builder, requireViewer } from "../builder";
 import type { Viewer } from "../context";
 import { fileUrl } from "../files";
+import { messages, notifyInBackground, summarize } from "../notifications";
 import { prisma } from "../db";
 import { pubsub } from "../pubsub";
 import { InterventionStatusEnum, PriorityEnum } from "./enums";
@@ -113,6 +114,10 @@ builder.mutationType({
           },
         });
         pubsub.publish("intervention:updated", viewer.companyId, { interventionId: created.id });
+        if (data.technicianId) {
+          const technicianId = data.technicianId;
+          void summarize(created.id).then((i) => notifyInBackground(technicianId, messages.assigned(i)));
+        }
         return created;
       },
     }),
@@ -152,6 +157,19 @@ builder.mutationType({
           },
         });
         pubsub.publish("intervention:updated", viewer.companyId, { interventionId: updated.id });
+
+        // Prévenir les techniciens concernés : nouveau, ancien, ou le même si l'horaire a changé
+        const before = existing.technicianId;
+        const after = args.technicianId !== undefined ? (args.technicianId ? String(args.technicianId) : null) : before;
+        const moved = existing.scheduledStart.getTime() !== args.scheduledStart.getTime();
+        void summarize(existing.id).then((i) => {
+          if (after !== before) {
+            notifyInBackground(after, messages.assigned(i));
+            notifyInBackground(before, messages.unassigned(i));
+          } else if (moved) {
+            notifyInBackground(after, messages.rescheduled(i));
+          }
+        });
         return updated;
       },
     }),
@@ -178,7 +196,7 @@ builder.mutationType({
 
         const existing = await prisma.intervention.findFirst({
           where: scope,
-          select: { id: true, status: true, signature: { select: { id: true } } },
+          select: { id: true, status: true, technicianId: true, signature: { select: { id: true } } },
         });
         if (!existing) throw notFound();
 
@@ -205,7 +223,40 @@ builder.mutationType({
           prisma.intervention.update({ ...query, where: { id }, data: { status: input.status } }),
         ]);
         pubsub.publish("intervention:updated", viewer.companyId, { interventionId: id });
+        if (input.status === "CANCELLED" && viewer.role === "MANAGER") {
+          const technicianId = existing.technicianId;
+          void summarize(id).then((i) => notifyInBackground(technicianId, messages.cancelled(i)));
+        }
         return updated;
+      },
+    }),
+
+    registerPushToken: t.boolean({
+      description: "Enregistre l'appareil du technicien pour les notifications push (Expo).",
+      args: { token: t.arg.string({ required: true }), platform: t.arg.string({ required: true }) },
+      resolve: async (_root, args, ctx) => {
+        const viewer = requireViewer(ctx);
+        if (!/^Expo(nent)?PushToken\[[^\]]{10,}\]$/.test(args.token)) {
+          throw new GraphQLError("Jeton de notification invalide", { extensions: { code: "BAD_USER_INPUT" } });
+        }
+        const platform = ["ios", "android"].includes(args.platform) ? args.platform : "unknown";
+        // un appareil partagé passe au technicien connecté
+        await prisma.pushToken.upsert({
+          where: { token: args.token },
+          create: { token: args.token, platform, userId: viewer.id },
+          update: { userId: viewer.id, platform },
+        });
+        return true;
+      },
+    }),
+
+    unregisterPushToken: t.boolean({
+      description: "Désinscrit l'appareil (déconnexion).",
+      args: { token: t.arg.string({ required: true }) },
+      resolve: async (_root, args, ctx) => {
+        const viewer = requireViewer(ctx);
+        await prisma.pushToken.deleteMany({ where: { token: args.token, userId: viewer.id } });
+        return true;
       },
     }),
 

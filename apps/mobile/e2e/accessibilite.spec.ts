@@ -33,7 +33,9 @@ for (const colorScheme of ["light", "dark"] as const) {
 
     await page.getByRole("link", { name: new RegExp(`Audit ${colorScheme} ${run}`) }).click();
     await page.getByRole("button", { name: "Je pars" }).click();
+    await expect(page.getByText("En route", { exact: true }).filter({ visible: true })).toBeVisible();
     await page.getByRole("button", { name: "Je suis arrivé" }).click();
+    await expect(page.getByText("Sur place", { exact: true }).filter({ visible: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Faire signer le client" })).toBeVisible();
     expect(await audit(page), "fiche intervention").toEqual([]);
 

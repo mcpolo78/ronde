@@ -91,6 +91,11 @@ type Mutation {
   changeStatus(input: ChangeStatusInput!): Intervention!
   createIntervention(input: CreateInterventionInput!): Intervention!
 
+  """
+  Enregistre l'appareil du technicien pour les notifications push (Expo).
+  """
+  registerPushToken(platform: String!, token: String!): Boolean!
+
   """Compte rendu du technicien (remplace le précédent)."""
   saveReport(interventionId: ID!, report: String!): Intervention!
 
@@ -104,6 +109,9 @@ type Mutation {
   """
   signIntervention(input: SignInterventionInput!): Intervention!
   toggleChecklistItem(checked: Boolean!, id: ID!): ChecklistItem!
+
+  """Désinscrit l'appareil (déconnexion)."""
+  unregisterPushToken(token: String!): Boolean!
 }
 
 type Photo {

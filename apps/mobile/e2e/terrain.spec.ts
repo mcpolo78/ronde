@@ -40,8 +40,10 @@ test("une intervention complète faite hors ligne arrive intacte au bureau", asy
   await context.setOffline(true);
 
   await page.getByRole("button", { name: "Je pars" }).click();
+  await expect(page.getByText("En route", { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText(/1 action en attente d'envoi/)).toBeVisible();
   await page.getByRole("button", { name: "Je suis arrivé" }).click();
+  await expect(page.getByText("Sur place", { exact: true }).filter({ visible: true })).toBeVisible();
 
   const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Prendre une photo" }).click();
@@ -93,6 +95,7 @@ test("une intervention annulée par le bureau pendant une coupure est signalée 
 
   await context.setOffline(true);
   await page.getByRole("button", { name: "Je pars" }).click();
+  await expect(page.getByText("En route", { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText(/1 action en attente d'envoi/)).toBeVisible();
 
   // pendant ce temps, le bureau annule l'intervention

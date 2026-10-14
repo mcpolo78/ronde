@@ -25,6 +25,10 @@ minimumReleaseAgeExclude:
   - turbo@2.11.8
   - lucide-react@1.57.0
 
-# Une seule version des types React dans tout le monorepo (évite les conflits de JSX)
+# Une seule version de React dans tout le monorepo, celle du SDK Expo : sinon pnpm crée des
+# copies distinctes de react-native/expo selon le contexte, fatales dans un build natif.
 overrides:
-  "@types/react": "19.3.0"
+  react: "19.2.3"
+  react-dom: "19.2.3"
+  "@types/react": "~19.2.18"
+  "@types/react-dom": "~19.2.3"

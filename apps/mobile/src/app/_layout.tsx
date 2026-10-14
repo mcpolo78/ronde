@@ -1,8 +1,10 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import * as Notifications from "expo-notifications";
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from "expo-router";
 import { useNetworkState } from "expo-network";
 import { useEffect } from "react";
-import { ActivityIndicator, AppState, useColorScheme, View } from "react-native";
+import { ActivityIndicator, AppState, Platform, useColorScheme, View } from "react-native";
 import { authClient } from "../lib/auth-client";
+import { registerForPushNotifications } from "../lib/push";
 import { useSync } from "../sync/store";
 import { useTheme } from "../theme";
 
@@ -65,6 +67,23 @@ function AutoSync() {
       if (state === "active") void sync();
     });
     return () => subscription.remove();
+  }, [sync]);
+
+  // Notifications : inscription de l'appareil ; une notification reçue déclenche une synchro,
+  // un appui ouvre directement l'intervention concernée.
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    registerForPushNotifications().catch((error) => console.warn("Notifications indisponibles :", error));
+    const received = Notifications.addNotificationReceivedListener(() => void sync());
+    const opened = Notifications.addNotificationResponseReceivedListener((response) => {
+      const id = response.notification.request.content.data?.interventionId;
+      void sync();
+      if (typeof id === "string") router.push({ pathname: "/intervention/[id]", params: { id } });
+    });
+    return () => {
+      received.remove();
+      opened.remove();
+    };
   }, [sync]);
 
   useEffect(() => {

@@ -92,6 +92,7 @@ async function main() {
   }
 
   console.log("Nettoyage…");
+  await prisma.pushToken.deleteMany();
   await prisma.session.deleteMany();
   await prisma.account.deleteMany();
   await prisma.verification.deleteMany();

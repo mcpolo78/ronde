@@ -5,6 +5,7 @@ import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, Text, View, 
 import { SyncStatus } from "../components/sync-status";
 import { Card, StatusBadge } from "../components/ui";
 import { authClient } from "../lib/auth-client";
+import { unregisterPushNotifications } from "../lib/push";
 import type { LocalIntervention } from "../sync/engine";
 import { useDay, useSync } from "../sync/store";
 import { RADIUS, useTheme } from "../theme";
@@ -32,7 +33,7 @@ export default function MyDayScreen() {
   const done = day.filter((i) => i.status === "DONE").length;
 
   function signOut() {
-    const doSignOut = () => void authClient.signOut();
+    const doSignOut = () => void unregisterPushNotifications().finally(() => authClient.signOut());
     if (queue.length) {
       confirm(
         `${queue.length} action(s) ne sont pas encore synchronisées. Elles seront envoyées à votre prochaine connexion.`,

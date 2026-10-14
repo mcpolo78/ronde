@@ -59,6 +59,7 @@ model User {
   statusEvents  StatusEvent[]
   sessions      Session[]
   accounts      Account[]
+  pushTokens    PushToken[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -72,6 +73,19 @@ model Session {
   expiresAt DateTime
   ipAddress String?
   userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+/// Jeton Expo Push d'un appareil (un technicien peut en avoir plusieurs).
+model PushToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  platform  String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
