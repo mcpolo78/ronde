@@ -13,7 +13,7 @@ test("le tableau de bord affiche l'activité du jour et les indicateurs", async 
 
 test("la carte du jour place les interventions et s'utilise au clavier", async ({ page }) => {
   const map = page.getByRole("region", { name: "Carte des interventions du jour" });
-  await expect(map).toBeVisible();
+  await map.scrollIntoViewIfNeeded(); // la carte n'est créée qu'à l'approche de l'écran
   const markers = map.getByRole("button", { name: /^\d{2}:\d{2} – \d{2}:\d{2}, / });
   await expect(markers.first()).toBeVisible({ timeout: 15_000 });
   expect(await markers.count()).toBeGreaterThan(5);

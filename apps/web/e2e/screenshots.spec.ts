@@ -10,7 +10,9 @@ const out = (name: string) => `../../docs/screenshots/${name}.png`;
 test("captures du back-office", async ({ page }) => {
   await login(page);
   await expect(page.getByText("Résolution à la 1re visite")).toBeVisible();
+  await page.getByRole("region", { name: "Carte des interventions du jour" }).scrollIntoViewIfNeeded();
   await expect(page.locator(".maplibregl-marker").first()).toBeVisible({ timeout: 15_000 });
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(2500); // tuiles de la carte
   await page.screenshot({ path: out("web-tableau-de-bord"), fullPage: true });
 

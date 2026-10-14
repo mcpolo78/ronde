@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui";
 import Loading from "./loading";
 import { UserMenu } from "@/components/user-menu";
 import { getViewer } from "@/lib/viewer";
+import { redirect } from "next/navigation";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -37,16 +38,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 /** Le back-office est réservé aux responsables ; les techniciens utilisent l'app mobile. */
 async function ManagerOnly({ children }: { children: ReactNode }) {
   const viewer = await getViewer();
-  if (viewer.role !== "MANAGER") {
-    return (
-      <div className="mx-auto max-w-md py-24 text-center">
-        <h1 className="text-xl font-semibold">Bonjour {viewer.name.split(" ")[0]} 👋</h1>
-        <p className="mt-2 text-muted">
-          Le back-office est réservé aux responsables planning. Retrouvez vos interventions dans
-          l&apos;application mobile Ronde.
-        </p>
-      </div>
-    );
-  }
+  // les techniciens n'ont pas accès au back-office : page dédiée, hors de ce layout
+  if (viewer.role !== "MANAGER") redirect("/technicien");
   return children;
 }

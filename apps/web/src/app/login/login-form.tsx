@@ -24,7 +24,7 @@ export function LoginForm() {
   function onSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      const { error } = await authClient.signIn.email({
+      const { data, error } = await authClient.signIn.email({
         email: String(formData.get("email")),
         password: String(formData.get("password")),
       });
@@ -32,7 +32,9 @@ export function LoginForm() {
         setError(ERROR_MESSAGES[error.code ?? ""] ?? "Connexion impossible. Réessayez.");
         return;
       }
-      router.replace(safeNext(searchParams.get("next")));
+      // un technicien n'a rien à faire dans le back-office : directement vers sa page
+      const role = (data?.user as { role?: string } | undefined)?.role;
+      router.replace(role === "TECHNICIAN" ? "/technicien" : safeNext(searchParams.get("next")));
       router.refresh();
     });
   }

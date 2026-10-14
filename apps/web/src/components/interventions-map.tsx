@@ -50,10 +50,29 @@ function popupContent(i: InterventionRow) {
 export function InterventionsMap({ interventions }: { interventions: InterventionRow[] }) {
   const container = useRef<HTMLDivElement>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [visible, setVisible] = useState(false);
 
+  // La carte (WebGL) coûte ~1 s de calcul : on ne la crée qu'à l'approche de l'écran,
+  // pour ne pas ralentir l'affichage du reste du tableau de bord.
   useEffect(() => {
     const element = container.current;
     if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const element = container.current;
+    if (!element || !visible) return;
     let disposed = false;
     let cleanup = () => {};
 
@@ -138,7 +157,7 @@ export function InterventionsMap({ interventions }: { interventions: Interventio
       disposed = true;
       cleanup();
     };
-  }, [interventions]);
+  }, [interventions, visible]);
 
   if (unavailable) {
     return <p className="text-sm text-muted">La carte n&apos;est pas disponible sur ce navigateur.</p>;
