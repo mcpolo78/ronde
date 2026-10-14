@@ -30,6 +30,7 @@ Pourquoi ce projet, pour qui, et comment on mesure son succès : voir [docs/disc
 - **Fiche intervention** : client, accès, checklist, historique horodaté des statuts, preuves de passage ; annulation avec confirmation.
 - **Création** avec les mêmes règles de validation que l'API (schémas Zod partagés).
 - **Temps réel** : les changements faits sur le terrain apparaissent sans recharger (subscription GraphQL en SSE).
+- **Carte du jour** (MapLibre, tuiles OpenFreeMap sans clé) : marqueurs par statut, utilisables au clavier, écartés automatiquement quand des interventions sont voisines.
 
 ### L'app technicien
 
@@ -38,6 +39,7 @@ Pourquoi ce projet, pour qui, et comment on mesure son succès : voir [docs/disc
 - **Itinéraire et appel** en un geste, consignes d'accès, checklist, photos (compressées et conservées sur l'appareil jusqu'à l'envoi), compte rendu.
 - **Signature du client** au doigt : le serveur reconstruit le SVG à partir des tracés (aucun balisage client servi).
 - **Hors ligne** : tout se met en file et part dans l'ordre au retour du réseau, sans doublon ; une intervention annulée par le bureau pendant la coupure est signalée clairement.
+- **Notifications push** quand le bureau assigne, replanifie ou annule une intervention ; un appui ouvre directement la fiche.
 
 ## Architecture
 
@@ -92,6 +94,16 @@ Back-office : <http://localhost:3000> · GraphiQL : <http://localhost:4000/graph
 
 En développement, l'en-tête `x-dev-user: <email>` permet aussi d'interroger l'API sans session (GraphiQL), si `ALLOW_DEV_IMPERSONATION=true`.
 
+### Installer l'app sur un téléphone
+
+```bash
+cd apps/mobile
+npx eas-cli@latest login
+npx eas-cli@latest build --platform android --profile preview   # APK installable, branché sur l'API de démo
+```
+
+Profils dans [`apps/mobile/eas.json`](apps/mobile/eas.json) : `development` (client de développement), `preview` (APK de démo), `production` (stores).
+
 ## Déploiement
 
 Neon (base) · Render (API) · Vercel (back-office), tous en région Francfort ; données de démo régénérées chaque nuit par GitHub Actions. Procédure : [docs/deploiement.md](docs/deploiement.md).
@@ -109,6 +121,15 @@ pnpm --filter @ronde/mobile test:e2e   # Playwright : app technicien, réseau co
 - **Back-office** : connexion, redirections, rôle technicien, création avec validation, annulation, filtres, déplacement au clavier et à la souris dans le planning. Les tests **échouent aussi en cas d'erreur dans la console du navigateur** (hydratation, exceptions).
 - **App technicien** (version web, téléphone simulé) : une intervention complète faite **hors ligne** — départ, arrivée, photo, compte rendu, signature, clôture — puis retour du réseau : l'état est vérifié **en base**, et une seconde synchronisation ne crée aucun doublon. Second scénario : le bureau annule l'intervention pendant la coupure, l'app le signale.
 
+### Mesures
+
+| | Performance | Accessibilité | Bonnes pratiques |
+|---|---|---|---|
+| Lighthouse (desktop, build de production) — connexion, tableau de bord, planning, interventions | **100** | **100** | **100** |
+| axe-core, WCAG 2.2 AA — tous les écrans du back-office et de l'app, clair et sombre | | **0 violation** | |
+
+Le tableau de bord initialise la carte (WebGL) seulement à l'approche de l'écran : temps de blocage passé de 910 ms à 50 ms. Les pages du back-office sont volontairement exclues de l'indexation (`robots.txt`) ; seule la connexion est indexable.
+
 La CI GitHub Actions exécute tout cela à chaque push et pull request, E2E compris (Postgres en service, Chromium headless).
 
 ## Avancement
@@ -116,7 +137,7 @@ La CI GitHub Actions exécute tout cela à chaque push et pull request, E2E comp
 - [x] **S1** — Monorepo, CI, modèle de données, API GraphQL (requêtes, mutations, temps réel), données de démo, règles métier testées
 - [x] **S2** — Authentification, back-office : tableau de bord, planning glisser-déposer, liste, fiche, création, temps réel, tests E2E
 - [x] **S3** — App technicien : journée, statuts, checklist, photos, signature, compte rendu, hors ligne, E2E
-- [ ] **S4** — Carte, notifications push, build installable (EAS), audit accessibilité et performance
+- [x] **S4** — Carte, notifications push, audits accessibilité (axe) et performance (Lighthouse), identité de l'app, configuration du build installable (EAS)
 
 ## Roadmap (hors V1)
 
