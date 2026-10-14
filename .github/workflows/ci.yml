@@ -55,7 +55,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm codegen
-      - run: pnpm db:push && pnpm db:seed
+      - run: pnpm db:deploy && pnpm db:seed # migrations versionnées, comme en production
       - run: pnpm --filter @ronde/web exec playwright install --with-deps chromium
       - run: pnpm --filter @ronde/web test:e2e
       - uses: actions/upload-artifact@v7

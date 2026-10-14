@@ -1,0 +1,33 @@
+# Blueprint Render : API GraphQL + authentification (apps/api).
+# Render → New → Blueprint → dépôt mcpolo78/ronde. Les valeurs `sync: false` sont demandées à la création.
+services:
+  - type: web
+    name: ronde-api
+    runtime: node
+    region: frankfurt # même région que la base Neon et que les fonctions Vercel (fra1)
+    plan: free
+    branch: main
+    # Seul le code de l'API déclenche un redéploiement
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/domain/**
+        - packages/config/**
+        - pnpm-lock.yaml
+    buildCommand: >-
+      npx --yes pnpm@12.11.2 install --frozen-lockfile --filter "@ronde/api..." &&
+      npx --yes pnpm@12.11.2 --filter @ronde/api codegen &&
+      npx --yes pnpm@12.11.2 --filter @ronde/api db:deploy
+    startCommand: cd apps/api && NODE_ENV=production node --import tsx src/index.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: DATABASE_URL # chaîne de connexion Neon
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL # URL du back-office Vercel, ex. https://ronde.vercel.app
+        sync: false
+      - key: CORS_ORIGINS # même URL que BETTER_AUTH_URL
+        sync: false

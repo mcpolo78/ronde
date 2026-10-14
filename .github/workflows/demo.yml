@@ -1,0 +1,44 @@
+name: Démo en ligne
+
+# Maintient la démo utilisable par un visiteur à tout moment :
+# - les données de démo sont relatives à « aujourd'hui » : on les régénère chaque nuit ;
+# - l'offre gratuite de Render met l'API en veille après 15 min : on la réveille en journée.
+on:
+  schedule:
+    - cron: "0 2 * * *" # chaque nuit (≈ 3-4 h à Paris)
+    - cron: "*/10 6-19 * * 1-5" # toutes les 10 min, 7 h-21 h à Paris, en semaine
+  workflow_dispatch:
+    inputs:
+      reseed:
+        description: "Appliquer les migrations et régénérer les données de démo"
+        type: boolean
+        default: true
+
+concurrency:
+  group: demo-${{ github.event.schedule || 'manual' }}
+
+jobs:
+  reseed:
+    if: vars.DEMO_API_URL != '' && (github.event.schedule == '0 2 * * *' || (github.event_name == 'workflow_dispatch' && inputs.reseed))
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+      RONDE_DEMO_SEED: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter "@ronde/api..."
+      - run: pnpm --filter @ronde/api codegen
+      - run: pnpm db:deploy
+      - run: pnpm db:seed
+
+  keep-awake:
+    if: vars.DEMO_API_URL != '' && (github.event.schedule == '*/10 6-19 * * 1-5' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Réveil de l'API
+        run: curl --fail --silent --show-error --max-time 90 --retry 2 "${{ vars.DEMO_API_URL }}/health"

@@ -56,6 +56,13 @@ function mondayOf(d: Date) {
 }
 
 async function main() {
+  // Le seed efface toutes les données : sur une base distante, il faut le confirmer explicitement.
+  const host = new URL(process.env.DATABASE_URL!.replace(/^prisma+/, "")).hostname;
+  const isLocal = ["localhost", "127.0.0.1", "::1"].includes(host);
+  if (!isLocal && process.env.RONDE_DEMO_SEED !== "true") {
+    throw new Error(`Seed refusé sur ${host} : définissez RONDE_DEMO_SEED=true pour une base de démo.`);
+  }
+
   console.log("Nettoyage…");
   await prisma.session.deleteMany();
   await prisma.account.deleteMany();

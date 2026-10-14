@@ -70,6 +70,10 @@ Back-office : <http://localhost:3000> · GraphiQL : <http://localhost:4000/graph
 
 En développement, l'en-tête `x-dev-user: <email>` permet aussi d'interroger l'API sans session (GraphiQL), si `ALLOW_DEV_IMPERSONATION=true`.
 
+## Déploiement
+
+Neon (base) · Render (API) · Vercel (back-office), tous en région Francfort ; données de démo régénérées chaque nuit par GitHub Actions. Procédure : [docs/deploiement.md](docs/deploiement.md).
+
 ## Qualité
 
 ```bash

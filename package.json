@@ -14,7 +14,8 @@
     "codegen": "turbo run codegen",
     "db:dev": "pnpm --filter @ronde/api db:dev",
     "db:push": "pnpm --filter @ronde/api db:push",
-    "db:seed": "pnpm --filter @ronde/api db:seed"
+    "db:seed": "pnpm --filter @ronde/api db:seed",
+    "db:deploy": "pnpm --filter @ronde/api db:deploy"
   },
   "devDependencies": {
     "turbo": "^2.11.8",
