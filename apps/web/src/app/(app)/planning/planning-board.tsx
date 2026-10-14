@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/core";
 import { dayKey, moveToDay } from "@ronde/domain";
 import clsx from "clsx";
-import { MoveRight } from "lucide-react";
+import { GripVertical, MoveRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { Button, inputClasses, StatusBadge } from "@/components/ui";
@@ -237,8 +237,12 @@ function DraggableCard({ intervention, onMove }: { intervention: InterventionRow
 
   return (
     <div ref={setNodeRef} className={clsx("group relative", isDragging && "opacity-40")}>
-      <div {...(movable ? { ...listeners, ...attributes } : {})} className={movable ? "cursor-grab active:cursor-grabbing" : undefined}>
-        <CardBody intervention={intervention} />
+      <div
+        {...(movable ? { ...listeners, ...attributes } : {})}
+        className={movable ? "cursor-grab touch-none active:cursor-grabbing" : undefined}
+        title={movable ? "Glisser pour déplacer" : "Intervention commencée ou clôturée : non déplaçable"}
+      >
+        <CardBody intervention={intervention} movable={movable} />
       </div>
       {movable && (
         <button
@@ -262,7 +266,15 @@ const BORDER: Record<InterventionRow["status"], string> = {
   CANCELLED: "border-l-[var(--status-cancelled)]",
 };
 
-function CardBody({ intervention: i, lifted }: { intervention: InterventionRow; lifted?: boolean }) {
+function CardBody({
+  intervention: i,
+  lifted,
+  movable,
+}: {
+  intervention: InterventionRow;
+  lifted?: boolean;
+  movable?: boolean;
+}) {
   return (
     <div
       className={clsx(
@@ -273,7 +285,10 @@ function CardBody({ intervention: i, lifted }: { intervention: InterventionRow; 
         (i.priority === "URGENT" || i.priority === "HIGH") && "ring-1 ring-danger/50",
       )}
     >
-      <p className="font-medium tabular-nums">{formatTimeRange(i.scheduledStart, i.scheduledEnd)}</p>
+      <p className="flex items-center gap-1 font-medium tabular-nums">
+        {(movable || lifted) && <GripVertical aria-hidden className="-ml-1 size-3 text-muted" />}
+        {formatTimeRange(i.scheduledStart, i.scheduledEnd)}
+      </p>
       <Link href={`/interventions/${i.id}`} className="block truncate hover:underline" draggable={false}>
         {i.type}
       </Link>
