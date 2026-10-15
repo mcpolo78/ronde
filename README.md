@@ -4,7 +4,7 @@
 
 > Planifiez, suivez et clôturez les interventions de vos techniciens — même sans réseau.
 
-**Démo en ligne : <https://ronde-six.vercel.app>** — compte `claire@ronde.demo`, mot de passe `demo-ronde`. Données régénérées chaque nuit ; si l’API était en veille, le premier chargement peut prendre une trentaine de secondes.
+**Démo en ligne : <https://ronde-app.vercel.app>** — compte `claire@ronde.demo`, mot de passe `demo-ronde`. Données régénérées chaque nuit ; si l’API était en veille, le premier chargement peut prendre une trentaine de secondes.
 
 **App technicien (Android)** : [installer l'APK de démo](https://expo.dev/accounts/jedi95/projects/ronde/builds/3ebeba96-d640-486a-a3bb-f7d9b0cd8335) — compte `karim@ronde.demo`, mot de passe `demo-ronde`. Ou scanner :
 

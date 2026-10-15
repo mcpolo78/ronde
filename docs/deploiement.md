@@ -18,7 +18,7 @@ Les trois services sont dans la même région : chaque page fait 1 à 3 appels s
 1. <https://vercel.com/new> → importer `mcpolo78/ronde`.
 2. **Root Directory** : `apps/web` (le reste est lu dans `vercel.json`).
 3. Variable d'environnement : `API_URL` = `https://ronde-api-nc26.onrender.com` (URL Render de l'étape 3).
-4. Déployer et noter l'URL de production, ici `https://ronde-six.vercel.app`.
+4. Déployer et noter l'URL de production, ici `https://ronde-app.vercel.app`.
 
 ## 3. API — Render
 
