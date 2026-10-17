@@ -31,12 +31,9 @@ Les trois services sont dans la même région : chaque page fait 1 à 3 appels s
 
 Si l'URL Render est différente de `ronde-api-nc26.onrender.com`, mettre à jour `API_URL` sur Vercel et redéployer.
 
-## 4. Données de démo et réveil de l'API — GitHub Actions
+## 4. Données de démo — GitHub Actions
 
-Le workflow [`demo.yml`](../.github/workflows/demo.yml) :
-
-- régénère chaque nuit les données de démo (elles sont relatives à « aujourd'hui ») ;
-- ne réveille plus l'API : c'est la page de connexion qui la réveille et fait patienter le visiteur (l'offre gratuite de Render la met en veille après 15 minutes).
+Le workflow [`demo.yml`](../.github/workflows/demo.yml) régénère chaque nuit les données de démo (elles sont relatives à « aujourd'hui »).
 
 Il ne s'active qu'une fois configuré :
 
@@ -47,3 +44,19 @@ gh workflow run demo.yml                 # premier remplissage de la base
 ```
 
 Le seed efface toutes les données : il refuse de s'exécuter sur une base distante sans `RONDE_DEMO_SEED=true`, que seul ce workflow définit.
+
+## 5. API éveillée en journée — cron-job.org
+
+L'offre gratuite de Render met l'API en veille après 15 minutes sans requête. Le réveil prend environ 2 minutes, et juste après la mise en veille Render peut refuser les requêtes pendant plusieurs minutes (502 `no-deploy`). Une tâche [cron-job.org](https://cron-job.org) (compte gratuit) la garde donc éveillée en journée :
+
+| Champ | Valeur |
+| --- | --- |
+| URL | `https://ronde-app.vercel.app/api/health?wake` |
+| Planification | `*/10 7-22 * * *` (toutes les 10 min, de 7 h à 22 h 50) |
+| Fuseau horaire | `Europe/Paris` |
+| Délai maximal | 30 s |
+
+- L'URL passe par le back-office : `?wake` répond toujours `202` avec un petit JSON (`{"isUp":…}`), y compris pendant le réveil. Appelée directement, l'API Render renvoie alors une page HTML trop lourde pour cron-job.org.
+- Environ 16 h d'activité par jour, soit ~510 h par mois, sous les 750 h gratuites de Render.
+- La nuit, l'API dort : la page de connexion la réveille, affiche un écran d'attente et ne montre le formulaire qu'une fois l'API prête. Le portfolio la réveille aussi dès qu'un visiteur ouvre le projet.
+- Les cron GitHub Actions ne conviennent pas : un planning toutes les 10 min n'y était déclenché que quelques fois par jour.
