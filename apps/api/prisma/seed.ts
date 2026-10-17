@@ -196,7 +196,9 @@ async function main() {
   for (let dayOffset = 0; dayOffset < 35; dayOffset++) {
     const day = new Date(firstMonday);
     day.setDate(day.getDate() + dayOffset);
-    if (day.getDay() === 0 || day.getDay() === 6) continue;
+    // Week-ends sautés, sauf aujourd'hui : la démo (et la carte du jour) n'est jamais vide le samedi.
+    const isToday = day.toDateString() === now.toDateString();
+    if ((day.getDay() === 0 || day.getDay() === 6) && !isToday) continue;
 
     for (const tech of technicians) {
       let cursor = atTime(day, 8, faker.helpers.arrayElement([0, 15, 30]));
