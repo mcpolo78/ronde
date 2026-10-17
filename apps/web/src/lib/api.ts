@@ -22,9 +22,9 @@ export class ApiError extends Error {
 }
 
 /** Délai maximal d'une tentative : l'API gratuite peut mettre longtemps à se réveiller. */
-const ATTEMPT_TIMEOUT_MS = 20_000;
+const ATTEMPT_TIMEOUT_MS = 8_000;
 /** Attentes entre deux essais de lecture (3 tentatives au total). */
-const RETRY_DELAYS_MS = [2_000, 5_000];
+const RETRY_DELAYS_MS = [1_000, 2_000];
 
 /** Une requête de lecture (`query`) peut être rejouée sans risque ; une mutation non. */
 const isQuery = (text: string) => /^s*(query|{)/.test(text);

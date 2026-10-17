@@ -1,26 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-/** Délais entre deux nouvelles tentatives : rapide au début, puis plus espacé. */
-const RETRY_DELAYS_MS = [3_000, 5_000, 10_000, 15_000];
+/** Intervalle entre deux vérifications de l'API. */
+const POLL_MS = 4_000;
+/** Intervalle plus long si la page a déjà été rechargée plusieurs fois en une minute. */
+const SLOW_POLL_MS = 15_000;
+const RELOADS_KEY = "ronde:reloads";
+
+/** Rechargements de la dernière minute (mémorisés le temps de l'onglet). */
+function recentReloads(): number[] {
+  try {
+    const now = Date.now();
+    const stored = JSON.parse(sessionStorage.getItem(RELOADS_KEY) ?? "[]") as number[];
+    return stored.filter((time) => now - time < 60_000);
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Affiché quand une page n'a pas pu charger ses données (API en train de se réveiller).
- * Jamais de message d'erreur : un indicateur d'attente, et une nouvelle tentative
- * automatique jusqu'à ce que l'API réponde.
+ * Jamais de message d'erreur : un écran d'attente stable qui vérifie l'API, puis recharge
+ * entièrement la page (comme F5) dès qu'elle répond.
  */
-export default function AppError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
-  const [attempt, setAttempt] = useState(0);
+export default function AppError({ error }: { error: Error & { digest?: string }; retry: () => void }) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
 
   useEffect(() => {
-    const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)]!;
-    const timer = setTimeout(() => {
-      setAttempt((n) => n + 1);
-      retry(); // retélécharge les données serveur ; reset() ne ferait que réafficher l’erreur
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [attempt, retry]);
+    let isStopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const delay = () => (recentReloads().length >= 3 ? SLOW_POLL_MS : POLL_MS);
+
+    const check = async () => {
+      try {
+        const response = await fetch("/api/health", { cache: "no-store" });
+        if (!isStopped && response.ok) {
+          try {
+            sessionStorage.setItem(RELOADS_KEY, JSON.stringify([...recentReloads(), Date.now()]));
+          } catch {
+            // stockage indisponible : on recharge quand même
+          }
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // réseau ou serveur indisponible : nouvel essai plus tard
+      }
+      if (!isStopped) timer = setTimeout(check, delay());
+    };
+
+    timer = setTimeout(check, 1_000);
+    return () => {
+      isStopped = true;
+      clearTimeout(timer);
+    };
+  }, []);
 
   return (
     <div role="status" aria-live="polite" className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
