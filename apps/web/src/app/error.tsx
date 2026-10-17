@@ -10,17 +10,17 @@ const RETRY_DELAYS_MS = [3_000, 5_000, 10_000, 15_000];
  * Jamais de message d'erreur : un indicateur d'attente, et une nouvelle tentative
  * automatique jusqu'à ce que l'API réponde.
  */
-export default function AppError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function AppError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)]!;
     const timer = setTimeout(() => {
       setAttempt((n) => n + 1);
-      reset();
+      retry(); // retélécharge les données serveur ; reset() ne ferait que réafficher l’erreur
     }, delay);
     return () => clearTimeout(timer);
-  }, [attempt, reset]);
+  }, [attempt, retry]);
 
   return (
     <div role="status" aria-live="polite" className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
