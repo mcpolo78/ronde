@@ -131,8 +131,11 @@ export function InterventionsMap({ interventions }: { interventions: Interventio
               const dx = pb.x - pa.x;
               const dy = pb.y - pa.y;
               const distance = Math.hypot(dx, dy) || 0.01;
-              if (distance >= MIN_GAP) continue;
-              const push = (MIN_GAP - distance) / 2 + 0.5;
+              // Les cibles sont des carrés de 24 px : deux marqueurs en diagonale peuvent être assez
+              // loin en ligne droite tout en se recouvrant. On mesure donc l'écart sur l'axe le plus grand.
+              const gap = Math.max(Math.abs(dx), Math.abs(dy));
+              if (gap >= MIN_GAP) continue;
+              const push = (MIN_GAP - gap) / 2 + 0.5;
               pa.x -= (dx / distance) * push;
               pa.y -= (dy / distance) * push;
               pb.x += (dx / distance) * push;
