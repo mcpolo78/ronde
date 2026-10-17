@@ -3,8 +3,10 @@ const API_URL = process.env.API_URL ?? "http://localhost:4000";
 /**
  * État de l'API, interrogé par l'écran d'attente depuis le navigateur.
  * Passe par le serveur Next.js : pas de CORS, et l'adresse de l'API reste côté serveur.
+ * `?wake` : appel de réveil depuis le portfolio, toujours 202 (pas d'erreur dans la console du visiteur).
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const isWakeCall = new URL(request.url).searchParams.has("wake");
   const started = Date.now();
   let isUp = false;
   let detail = "";
@@ -21,5 +23,6 @@ export async function GET() {
   }
   // Diagnostic du réveil de l'API : ce que Render répond pendant sa mise en veille
   if (!isUp) console.warn(`[health] API indisponible après ${Date.now() - started} ms : ${detail}`);
-  return Response.json({ isUp }, { status: isUp ? 200 : 503, headers: { "cache-control": "no-store" } });
+  const status = isWakeCall ? 202 : isUp ? 200 : 503;
+  return Response.json({ isUp }, { status, headers: { "cache-control": "no-store" } });
 }

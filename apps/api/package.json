@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "build": "tsx scripts/build.ts",
     "start": "tsx --env-file-if-exists=.env src/index.ts",
+    "start:prod": "node dist/index.js",
     "codegen": "prisma generate && tsx scripts/print-schema.ts",
     "typecheck": "tsc",
     "test": "vitest run --passWithNoTests",
@@ -38,6 +40,7 @@
     "@types/pg": "^8.15.5",
     "dotenv": "^17.2.3",
     "embedded-postgres": "17.10.0-beta.17",
+    "esbuild": "0.28.2",
     "prisma": "7.10.0",
     "typescript": "~6.0.3",
     "vitest": "^5.0.4"

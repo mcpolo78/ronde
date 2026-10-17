@@ -17,8 +17,10 @@ services:
     buildCommand: >-
       npx --yes pnpm@12.11.2 install --frozen-lockfile --filter "@ronde/api..." &&
       npx --yes pnpm@12.11.2 --filter @ronde/api codegen &&
+      npx --yes pnpm@12.11.2 --filter @ronde/api build &&
       npx --yes pnpm@12.11.2 --filter @ronde/api db:deploy
-    startCommand: cd apps/api && NODE_ENV=production node --import tsx src/index.ts
+    # JavaScript déjà compilé : démarrage plus rapide au réveil de l'offre gratuite
+    startCommand: cd apps/api && NODE_ENV=production node dist/index.js
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION

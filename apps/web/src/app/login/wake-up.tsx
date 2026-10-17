@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TourReplay } from "./tour-replay";
 
 /** Durée de réveil annoncée au visiteur (hébergement gratuit de l'API). */
 export const EXPECTED_WAKE_SECONDS = 120;
@@ -20,17 +21,15 @@ export function WakeUpScreen({ secondsToNextCheck }: { secondsToNextCheck: numbe
 
   return (
     <div className="flex flex-col items-center gap-4 text-center text-sm">
-      <span
-        aria-hidden="true"
-        className="inline-block size-8 animate-spin rounded-full border-4 border-border border-t-brand"
-      />
       <div>
         <p role="status" className="font-medium">Démarrage du serveur de démo…</p>
         <p className="mt-1 text-muted">
           L&apos;hébergement gratuit met le serveur en veille : son réveil prend jusqu&apos;à 2 minutes.
-          La connexion s&apos;affichera dès qu&apos;il répond.
+          La connexion s&apos;affichera dès qu&apos;il répond. En attendant, une journée de tournée
+          en accéléré :
         </p>
       </div>
+      <TourReplay />
       <div
         role="progressbar"
         aria-label="Démarrage du serveur de démo"
