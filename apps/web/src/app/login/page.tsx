@@ -14,21 +14,24 @@ export default function LoginPage() {
           </p>
           <h1 className="mt-2 text-sm text-muted">Connexion au back-office</h1>
         </div>
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-xs">
-          <Suspense>
-            <LoginForm />
-          </Suspense>
-        </div>
-        <aside className="mt-6 rounded-xl border border-dashed border-border p-4 text-sm">
-          <p className="font-medium">Compte de démonstration</p>
-          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-muted">
-            <dt>Email</dt>
-            <dd className="font-mono text-foreground">claire@ronde.demo</dd>
-            <dt>Mot de passe</dt>
-            <dd className="font-mono text-foreground">demo-ronde</dd>
-          </dl>
-        </aside>
+        <Suspense>
+          <LoginForm demoAccount={<DemoAccount />} />
+        </Suspense>
       </div>
     </main>
+  );
+}
+
+function DemoAccount() {
+  return (
+    <aside className="mt-6 rounded-xl border border-dashed border-border p-4 text-sm">
+      <p className="font-medium">Compte de démonstration</p>
+      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-muted">
+        <dt>Email</dt>
+        <dd className="font-mono text-foreground">claire@ronde.demo</dd>
+        <dt>Mot de passe</dt>
+        <dd className="font-mono text-foreground">demo-ronde</dd>
+      </dl>
+    </aside>
   );
 }
