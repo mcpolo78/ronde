@@ -36,7 +36,7 @@ Si l'URL Render est différente de `ronde-api-nc26.onrender.com`, mettre à jour
 Le workflow [`demo.yml`](../.github/workflows/demo.yml) :
 
 - régénère chaque nuit les données de démo (elles sont relatives à « aujourd'hui ») ;
-- réveille l'API toutes les 10 minutes en journée, week-end compris (l'offre gratuite de Render la met en veille après 15 minutes).
+- ne réveille plus l'API : c'est la page de connexion qui la réveille et fait patienter le visiteur (l'offre gratuite de Render la met en veille après 15 minutes).
 
 Il ne s'active qu'une fois configuré :
 
