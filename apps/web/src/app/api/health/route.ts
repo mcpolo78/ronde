@@ -3,7 +3,8 @@ const API_URL = process.env.API_URL ?? "http://localhost:4000";
 /**
  * État de l'API, interrogé par l'écran d'attente depuis le navigateur.
  * Passe par le serveur Next.js : pas de CORS, et l'adresse de l'API reste côté serveur.
- * `?wake` : appel de réveil depuis le portfolio, toujours 202 (pas d'erreur dans la console du visiteur).
+ * `?wake` : toujours 202, l'état est dans le JSON (pas d'erreur 503 dans la console du visiteur) ;
+ * utilisé par le portfolio (réveil) et par les écrans d'attente.
  */
 export async function GET(request: Request) {
   const isWakeCall = new URL(request.url).searchParams.has("wake");

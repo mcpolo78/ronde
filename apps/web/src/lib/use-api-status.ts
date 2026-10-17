@@ -16,6 +16,7 @@ export function useApiStatus() {
   const [status, setStatus] = useState<ApiStatus>("checking");
   const [round, setRound] = useState(0); // chaque nouvelle valeur relance les vérifications
   const [secondsToNextCheck, setSecondsToNextCheck] = useState(CHECK_EVERY_SECONDS);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     let isStopped = false;
@@ -23,13 +24,17 @@ export function useApiStatus() {
 
     const check = async () => {
       clearInterval(countdown);
+      setIsChecking(true);
       let up = false;
       try {
-        up = (await fetch("/api/health", { cache: "no-store" })).ok;
+        // délai côté navigateur : une vérification bloquée ne doit pas figer l'écran d'attente
+        const response = await fetch("/api/health?wake", { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+        up = ((await response.json()) as { isUp?: boolean }).isUp === true;
       } catch {
         up = false;
       }
       if (isStopped) return;
+      setIsChecking(false);
       if (up) {
         setStatus("up");
         return;
@@ -54,8 +59,9 @@ export function useApiStatus() {
   /** L'API a cessé de répondre : on masque à nouveau le formulaire et on revérifie. */
   const recheck = useCallback(() => {
     setStatus("waking");
+    setSecondsToNextCheck(CHECK_EVERY_SECONDS);
     setRound((n) => n + 1);
   }, []);
 
-  return { status, secondsToNextCheck, recheck };
+  return { status, secondsToNextCheck, isChecking, recheck };
 }

@@ -10,7 +10,13 @@ export const EXPECTED_WAKE_SECONDS = 120;
  * Écran affiché à la place du formulaire tant que l'API de démo ne répond pas :
  * temps écoulé, prochaine vérification, et une progression indicative.
  */
-export function WakeUpScreen({ secondsToNextCheck }: { secondsToNextCheck: number }) {
+export function WakeUpScreen({
+  secondsToNextCheck,
+  isChecking,
+}: {
+  secondsToNextCheck: number;
+  isChecking: boolean;
+}) {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const started = Date.now();
@@ -44,7 +50,8 @@ export function WakeUpScreen({ secondsToNextCheck }: { secondsToNextCheck: numbe
         />
       </div>
       <p aria-hidden="true" className="text-xs text-muted">
-        {seconds} s écoulées · prochaine vérification dans {Math.max(0, secondsToNextCheck)} s
+        {seconds} s écoulées ·{" "}
+        {isChecking ? "vérification…" : `prochaine vérification dans ${Math.max(0, secondsToNextCheck)} s`}
       </p>
     </div>
   );

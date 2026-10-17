@@ -27,7 +27,7 @@ const ATTEMPT_TIMEOUT_MS = 8_000;
 const RETRY_DELAYS_MS = [1_000, 2_000];
 
 /** Une requête de lecture (`query`) peut être rejouée sans risque ; une mutation non. */
-const isQuery = (text: string) => /^s*(query|{)/.test(text);
+const isQuery = (text: string) => /^\s*(query\b|\{)/.test(text);
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

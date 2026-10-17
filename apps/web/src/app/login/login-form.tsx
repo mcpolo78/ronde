@@ -12,6 +12,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   TOO_MANY_REQUESTS: "Trop de tentatives, réessayez dans une minute.",
 };
 
+/** L'API répond-elle en ce moment ? */
+async function isApiUp() {
+  try {
+    const response = await fetch("/api/health?wake", { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+    return ((await response.json()) as { isUp?: boolean }).isUp === true;
+  } catch {
+    return false;
+  }
+}
+
 /** N'accepte qu'un chemin interne, pour éviter les redirections ouvertes (?next=https://…). */
 function safeNext(value: string | null) {
   return value && value.startsWith("/") && !value.startsWith("//")
@@ -22,7 +32,7 @@ function safeNext(value: string | null) {
 export function LoginForm({ demoAccount }: { demoAccount: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status, secondsToNextCheck, recheck } = useApiStatus();
+  const { status, secondsToNextCheck, isChecking, recheck } = useApiStatus();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -45,7 +55,12 @@ export function LoginForm({ demoAccount }: { demoAccount: ReactNode }) {
         return;
       }
       if (!error.code && (!error.status || error.status >= 500)) {
-        recheck(); // le serveur s'est rendormi : retour à l'écran d'attente
+        if (!(await isApiUp())) {
+          recheck(); // le serveur s'est rendormi : retour à l'écran d'attente
+          return;
+        }
+        // le serveur répond mais la connexion a échoué (base qui démarre…) : on le dit
+        setError("Le serveur de démo n’a pas pu vous connecter, réessayez dans quelques secondes.");
         return;
       }
       setError(
@@ -70,7 +85,7 @@ export function LoginForm({ demoAccount }: { demoAccount: ReactNode }) {
     return (
       <>
         <div className="rounded-xl border border-border bg-surface p-6 shadow-xs">
-          <WakeUpScreen secondsToNextCheck={secondsToNextCheck} />
+          <WakeUpScreen secondsToNextCheck={secondsToNextCheck} isChecking={isChecking} />
         </div>
         {demoAccount}
         <Showcase />
