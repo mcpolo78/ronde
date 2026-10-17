@@ -17,6 +17,7 @@ async function audit(page: Page) {
     impact: v.impact,
     aide: v.help,
     cibles: v.nodes.slice(0, 3).map((n) => n.target.join(" ")),
+    pourquoi: v.nodes.slice(0, 3).map((n) => n.failureSummary), // raison donnée par axe (taille, voisin trop proche…)
   }));
 }
 
