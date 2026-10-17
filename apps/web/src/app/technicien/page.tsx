@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { IdleSignOut } from "@/components/idle-sign-out";
 import { SignOutButton } from "@/components/sign-out-button";
 import { getViewer } from "@/lib/viewer";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = { title: "Espace technicien — Ronde" };
 export default function TechnicianPage() {
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col justify-center px-4 py-24 text-center">
+      <IdleSignOut />
       <p className="text-3xl font-semibold tracking-tight">
         <span className="text-brand">●</span> Ronde
       </p>

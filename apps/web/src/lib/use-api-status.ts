@@ -1,27 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type ApiStatus = "checking" | "waking" | "up";
 
-const POLL_MS = 3_000;
+/** Intervalle entre deux vérifications pendant le réveil de l'API. */
+export const CHECK_EVERY_SECONDS = 30;
 
 /**
  * Suit l'état de l'API de démo depuis le navigateur, via /api/health.
- * La vérification démarre dès l'affichage : le simple fait d'ouvrir la page réveille l'API
- * (hébergement gratuit en veille), pendant que le visiteur lit et tape ses identifiants.
+ * Une vérification tout de suite (elle réveille l'API, en veille sur l'hébergement gratuit),
+ * puis une toutes les 30 s jusqu'à ce que l'API réponde.
  */
 export function useApiStatus() {
   const [status, setStatus] = useState<ApiStatus>("checking");
-  const [round, setRound] = useState(0); // chaque nouvelle valeur relance une série de vérifications
-  const isUp = useRef(false);
-  const waiters = useRef<Array<() => void>>([]);
+  const [round, setRound] = useState(0); // chaque nouvelle valeur relance les vérifications
+  const [secondsToNextCheck, setSecondsToNextCheck] = useState(CHECK_EVERY_SECONDS);
 
   useEffect(() => {
     let isStopped = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    let countdown: ReturnType<typeof setInterval> | undefined;
 
     const check = async () => {
+      clearInterval(countdown);
       let up = false;
       try {
         up = (await fetch("/api/health", { cache: "no-store" })).ok;
@@ -30,42 +31,31 @@ export function useApiStatus() {
       }
       if (isStopped) return;
       if (up) {
-        isUp.current = true;
         setStatus("up");
-        waiters.current.splice(0).forEach((resolve) => resolve());
         return;
       }
       setStatus("waking");
-      timer = setTimeout(() => void check(), POLL_MS);
+      let left = CHECK_EVERY_SECONDS;
+      setSecondsToNextCheck(left);
+      countdown = setInterval(() => {
+        left -= 1;
+        setSecondsToNextCheck(left);
+        if (left <= 0) void check();
+      }, 1_000);
     };
 
-    // Pas de réponse rapide : l'API dort, on l'annonce sans attendre la fin de la vérification
-    const slow = setTimeout(() => setStatus((current) => (current === "checking" ? "waking" : current)), 2_000);
     void check();
     return () => {
       isStopped = true;
-      clearTimeout(timer);
-      clearTimeout(slow);
+      clearInterval(countdown);
     };
   }, [round]);
 
-  /** Résout dès que l'API répond (tout de suite si elle est déjà prête). */
-  const whenUp = useCallback(
-    () =>
-      isUp.current
-        ? Promise.resolve()
-        : new Promise<void>((resolve) => {
-            waiters.current.push(resolve);
-          }),
-    [],
-  );
-
-  /** L'API a cessé de répondre (requête en échec) : on repart en vérification. */
+  /** L'API a cessé de répondre : on masque à nouveau le formulaire et on revérifie. */
   const recheck = useCallback(() => {
-    isUp.current = false;
     setStatus("waking");
     setRound((n) => n + 1);
   }, []);
 
-  return { status, whenUp, recheck };
+  return { status, secondsToNextCheck, recheck };
 }

@@ -1,64 +1,52 @@
 "use client";
 
-import { useState } from "react";
-import type { ApiStatus } from "@/lib/use-api-status";
+import { useEffect, useState } from "react";
 
 /** Durée de réveil annoncée au visiteur (hébergement gratuit de l'API). */
 export const EXPECTED_WAKE_SECONDS = 120;
 
-const spinner =
-  "inline-block size-3.5 shrink-0 animate-spin rounded-full border-2 border-border border-t-brand";
+/**
+ * Écran affiché à la place du formulaire tant que l'API de démo ne répond pas :
+ * temps écoulé, prochaine vérification, et une progression indicative.
+ */
+export function WakeUpScreen({ secondsToNextCheck }: { secondsToNextCheck: number }) {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const started = Date.now();
+    const timer = setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1_000);
+    return () => clearInterval(timer);
+  }, []);
+  const percent = Math.min(95, Math.round((seconds / EXPECTED_WAKE_SECONDS) * 100));
 
-/** État du serveur de démo, affiché sous le formulaire dès l'ouverture de la page. */
-export function ApiStatusBadge({ status }: { status: ApiStatus }) {
   return (
-    <p
-      role="status"
-      className="flex items-center justify-center gap-2 text-xs text-muted"
-    >
-      {status === "up" ? (
-        <>
-          <span aria-hidden="true" className="size-2 rounded-full bg-brand" />
-          Serveur de démo prêt
-        </>
-      ) : (
-        <>
-          <span aria-hidden="true" className={spinner} />
-          {status === "checking"
-            ? "Vérification du serveur de démo…"
-            : "Serveur de démo en cours de démarrage (jusqu’à 2 min)…"}
-        </>
-      )}
-    </p>
-  );
-}
-
-/** Explication et progression pendant une connexion qui attend le réveil de l'API. */
-export function WakeUpProgress({ seconds }: { seconds: number }) {
-  const percent = Math.min(
-    95,
-    Math.round((seconds / EXPECTED_WAKE_SECONDS) * 100),
-  );
-  return (
-    <div className="flex flex-col gap-2 text-sm">
-      <p aria-live="polite">
-        {seconds < 60
-          ? "Le serveur de démo se réveille (hébergement gratuit) : comptez jusqu’à 2 minutes. Vous serez connecté automatiquement."
-          : "Encore quelques secondes… La connexion se fera dès que le serveur répond."}
-      </p>
+    <div className="flex flex-col items-center gap-4 text-center text-sm">
+      <span
+        aria-hidden="true"
+        className="inline-block size-8 animate-spin rounded-full border-4 border-border border-t-brand"
+      />
+      <div>
+        <p role="status" className="font-medium">Démarrage du serveur de démo…</p>
+        <p className="mt-1 text-muted">
+          L&apos;hébergement gratuit met le serveur en veille : son réveil prend jusqu&apos;à 2 minutes.
+          La connexion s&apos;affichera dès qu&apos;il répond.
+        </p>
+      </div>
       <div
         role="progressbar"
         aria-label="Démarrage du serveur de démo"
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
-        className="h-1.5 overflow-hidden rounded-full bg-surface-muted"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted"
       >
         <div
           className="h-full rounded-full bg-brand transition-[width] duration-1000"
           style={{ width: `${percent}%` }}
         />
       </div>
+      <p aria-hidden="true" className="text-xs text-muted">
+        {seconds} s écoulées · prochaine vérification dans {Math.max(0, secondsToNextCheck)} s
+      </p>
     </div>
   );
 }

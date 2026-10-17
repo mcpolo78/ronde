@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from "react";
+import { IdleSignOut } from "@/components/idle-sign-out";
 import { LiveUpdates } from "@/components/live-updates";
 import { MainNav, MainNavFallback } from "@/components/main-nav";
 import { Skeleton } from "@/components/ui";
@@ -10,6 +11,7 @@ import { redirect } from "next/navigation";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1 flex-col md:flex-row">
+      <IdleSignOut />
       <aside className="flex shrink-0 flex-col gap-6 border-b border-border bg-surface px-4 py-4 md:sticky md:top-0 md:h-dvh md:w-60 md:border-r md:border-b-0 md:py-6">
         <div className="flex items-center justify-between md:block">
           <p className="px-2 text-xl font-semibold tracking-tight">
