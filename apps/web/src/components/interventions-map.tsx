@@ -145,7 +145,12 @@ export function InterventionsMap({ interventions }: { interventions: Interventio
         markers.forEach((m, i) => m.setOffset([positions[i]!.x - anchors[i]!.x, positions[i]!.y - anchors[i]!.y]));
       };
       spread();
+      // L'écart dépend du zoom et de la taille de la carte : on le recalcule aussi quand le
+      // conteneur change de taille et une fois le rendu stabilisé, sinon des marqueurs peuvent
+      // se recouvrir (cibles de moins de 24 px).
       map.on("zoomend", spread);
+      map.on("resize", spread);
+      map.once("idle", spread);
 
       cleanup = () => {
         markers.forEach((m) => m.remove());
