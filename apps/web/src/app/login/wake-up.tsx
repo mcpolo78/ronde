@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ApiStatus } from "@/lib/use-api-status";
 
 /** Durée de réveil annoncée au visiteur (hébergement gratuit de l'API). */
-export const EXPECTED_WAKE_SECONDS = 60;
+export const EXPECTED_WAKE_SECONDS = 120;
 
 const spinner =
   "inline-block size-3.5 shrink-0 animate-spin rounded-full border-2 border-border border-t-brand";
@@ -26,7 +26,7 @@ export function ApiStatusBadge({ status }: { status: ApiStatus }) {
           <span aria-hidden="true" className={spinner} />
           {status === "checking"
             ? "Vérification du serveur de démo…"
-            : "Serveur de démo en cours de démarrage (30 à 60 s)…"}
+            : "Serveur de démo en cours de démarrage (jusqu’à 2 min)…"}
         </>
       )}
     </p>
@@ -42,8 +42,8 @@ export function WakeUpProgress({ seconds }: { seconds: number }) {
   return (
     <div className="flex flex-col gap-2 text-sm">
       <p aria-live="polite">
-        {seconds < 30
-          ? "Le serveur de démo se réveille (hébergement gratuit) : comptez 30 à 60 secondes. Vous serez connecté automatiquement."
+        {seconds < 60
+          ? "Le serveur de démo se réveille (hébergement gratuit) : comptez jusqu’à 2 minutes. Vous serez connecté automatiquement."
           : "Encore quelques secondes… La connexion se fera dès que le serveur répond."}
       </p>
       <div

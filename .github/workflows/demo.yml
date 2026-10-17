@@ -6,7 +6,7 @@ name: Démo en ligne
 on:
   schedule:
     - cron: "0 2 * * *" # chaque nuit (≈ 3-4 h à Paris)
-    - cron: "*/10 6-19 * * 1-5" # toutes les 10 min, 7 h-21 h à Paris, en semaine
+    - cron: "*/10 6-19 * * *" # toutes les 10 min, 7 h-21 h à Paris, week-end compris
   workflow_dispatch:
     inputs:
       reseed:
@@ -37,7 +37,7 @@ jobs:
       - run: pnpm db:seed
 
   keep-awake:
-    if: vars.DEMO_API_URL != '' && (github.event.schedule == '*/10 6-19 * * 1-5' || github.event_name == 'workflow_dispatch')
+    if: vars.DEMO_API_URL != '' && (github.event.schedule == '*/10 6-19 * * *' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - name: Réveil de l'API
