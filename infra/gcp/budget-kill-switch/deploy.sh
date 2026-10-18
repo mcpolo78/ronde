@@ -31,5 +31,8 @@ gcloud functions deploy billing-kill-switch --project "$PROJECT_ID" --gen2 --reg
   --trigger-topic billing-alerts --service-account "$KILL_SA" \
   --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID" \
   --memory 256Mi --max-instances 1 --quiet
+# Le déclencheur Pub/Sub appelle la fonction avec ce compte : il lui faut le droit d'invocation
+gcloud run services add-iam-policy-binding billing-kill-switch --project "$PROJECT_ID" --region "$REGION" \
+  --member "serviceAccount:$KILL_SA" --role roles/run.invoker >/dev/null
 
 echo "Budget ${BUDGET_EUR} € et coupe-circuit en place."

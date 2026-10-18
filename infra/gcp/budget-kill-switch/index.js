@@ -8,7 +8,9 @@ const billing = new CloudBillingClient();
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT;
 
 export async function stopBilling(event) {
-  const data = JSON.parse(Buffer.from(event.data.message.data, 'base64').toString());
+  // CloudEvent ({ data: { message } }) ou ancien format (le message lui-même), selon le déclencheur
+  const message = event.data?.message ?? event;
+  const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
   const { costAmount, budgetAmount } = data;
   console.log(`Coût ${costAmount} / budget ${budgetAmount}`);
   if (costAmount <= budgetAmount) return;
