@@ -4,9 +4,9 @@
 
 > Planifiez, suivez et clôturez les interventions de vos techniciens — même sans réseau.
 
-**Démo en ligne : <https://ronde-app.vercel.app>** — compte `claire@ronde.demo`, mot de passe `demo-ronde`. Données régénérées chaque nuit ; l’API est maintenue éveillée de 7 h à 23 h (heure de Paris), et la nuit son réveil peut prendre jusqu’à 2 minutes.
+**Démo en ligne : <https://ronde-app.vercel.app>** — compte `claire@ronde.demo`, mot de passe `demo-ronde`. Données régénérées chaque nuit.
 
-**App technicien (Android)** : [installer l'APK de démo](https://expo.dev/accounts/jedi95/projects/ronde/builds/3ebeba96-d640-486a-a3bb-f7d9b0cd8335) — compte `karim@ronde.demo`, mot de passe `demo-ronde`. Ou scanner :
+**App technicien (Android)** : [installer l'APK de démo](https://expo.dev/accounts/jedi95/projects/ronde/builds/e961f56f-2c26-4e5a-a42c-9b349a42c514) — compte `karim@ronde.demo`, mot de passe `demo-ronde`. Ou scanner :
 
 <img src="docs/screenshots/app-android-qr.png" alt="QR code d'installation de l'app Android" width="140">
 
