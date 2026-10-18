@@ -1,5 +1,7 @@
 # Migration de l'API : Render → Google Cloud Run
 
+> Faite le 18/10/2026 : projet `ronde-api-mc78`, API sur https://ronde-api-r2iybijiha-ey.a.run.app.
+
 Pourquoi : l'offre gratuite de Render endort l'API après 15 min et met ~2 min à la réveiller (502 entre-temps).
 Cloud Run démarre un conteneur en 1 à 3 s, toujours à 0 instance au repos, dans l'offre gratuite.
 

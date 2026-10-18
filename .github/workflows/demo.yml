@@ -1,8 +1,7 @@
 name: Démo en ligne
 
 # Les données de démo sont relatives à « aujourd'hui » : on les régénère chaque nuit.
-# L'API (offre gratuite de Render) se met en veille après 15 min : c'est la page de connexion
-# qui la réveille et fait patienter le visiteur.
+# L'API (Cloud Run) descend à 0 instance au repos : la première requête la relance en quelques secondes.
 on:
   schedule:
     - cron: "0 2 * * *" # chaque nuit (≈ 3-4 h à Paris)

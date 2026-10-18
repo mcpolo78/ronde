@@ -110,7 +110,7 @@ Profils dans [`apps/mobile/eas.json`](apps/mobile/eas.json) : `development` (cli
 
 ## Déploiement
 
-Neon (base) · Render (API) · Vercel (back-office), tous en région Francfort ; données de démo régénérées chaque nuit par GitHub Actions. Procédure : [docs/deploiement.md](docs/deploiement.md).
+Neon (base) · Google Cloud Run (API) · Vercel (back-office), tous en région Francfort ; données de démo régénérées chaque nuit par GitHub Actions. Procédure : [docs/deploiement.md](docs/deploiement.md).
 
 ## Qualité
 

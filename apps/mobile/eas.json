@@ -8,7 +8,7 @@
       "node": "24.15.0",
       "pnpm": "12.11.2",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ronde-api-nc26.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://ronde-api-r2iybijiha-ey.a.run.app"
       }
     },
     "development": {
