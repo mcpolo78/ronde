@@ -1,0 +1,87 @@
+name: Déploiement API (Cloud Run)
+
+# Construit l'image de l'API, la pousse dans Artifact Registry, applique les migrations puis déploie
+# sur Cloud Run. Authentification par Workload Identity Federation : aucune clé de compte de service.
+# Variables du dépôt (Settings → Variables) : GCP_PROJECT_ID, GCP_REGION, GCP_WIF_PROVIDER, GCP_DEPLOY_SA
+# Secret du dépôt : DATABASE_URL (Neon, sert aux migrations)
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/api/**
+      - packages/domain/**
+      - packages/config/**
+      - pnpm-lock.yaml
+      - .github/workflows/deploy-api.yml
+  pull_request:
+    paths:
+      - apps/api/Dockerfile
+      - .dockerignore
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+env:
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/ronde/api
+
+jobs:
+  # Sur une PR : vérifie seulement que l'image se construit
+  build-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -f apps/api/Dockerfile -t ronde-api .
+
+  deploy:
+    if: github.event_name != 'pull_request' && vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Construire et pousser l'image
+        run: |
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+          docker build -f apps/api/Dockerfile -t "$IMAGE:${{ github.sha }}" .
+          docker push "$IMAGE:${{ github.sha }}"
+
+      - name: Migrations
+        uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter "@ronde/api..."
+      - run: pnpm --filter @ronde/api codegen
+      - run: pnpm --filter @ronde/api db:deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Déployer sur Cloud Run
+        run: |
+          gcloud run deploy ronde-api \
+            --image "$IMAGE:${{ github.sha }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --quiet
+
+      - name: Vérifier /health
+        run: |
+          url=$(gcloud run services describe ronde-api --region "${{ vars.GCP_REGION }}" --format 'value(status.url)')
+          curl --fail --retry 5 --retry-delay 3 "$url/health"
+
+      - name: Nettoyer les anciennes images (stockage gratuit limité à 0,5 Go)
+        run: |
+          gcloud artifacts docker images list "$IMAGE" --sort-by=~UPDATE_TIME --format 'value(version)' \
+            | tail -n +3 \
+            | xargs -r -I{} gcloud artifacts docker images delete "$IMAGE@{}" --delete-tags --quiet
