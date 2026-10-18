@@ -12,8 +12,8 @@ exists gcloud pubsub topics describe billing-alerts --project "$PROJECT_ID" \
   || gcloud pubsub topics create billing-alerts --project "$PROJECT_ID"
 
 # Budget limité à ce projet, alertes à 50 %, 90 % et 100 % (e-mail aux administrateurs du compte)
-if ! gcloud billing budgets list --billing-account "$BILLING_ACCOUNT" --format 'value(displayName)' | grep -qx "ronde-api"; then
-  gcloud billing budgets create --billing-account "$BILLING_ACCOUNT" --display-name ronde-api \
+if ! gcloud billing budgets list --billing-account "$BILLING_ACCOUNT" --billing-project "$PROJECT_ID" --format 'value(displayName)' | grep -qx "ronde-api"; then
+  gcloud billing budgets create --billing-account "$BILLING_ACCOUNT" --billing-project "$PROJECT_ID" --display-name ronde-api \
     --budget-amount "${BUDGET_EUR}EUR" --filter-projects "projects/$PROJECT_ID" \
     --threshold-rule percent=0.5 --threshold-rule percent=0.9 --threshold-rule percent=1.0 \
     --notifications-rule-pubsub-topic "projects/$PROJECT_ID/topics/billing-alerts"
@@ -29,6 +29,7 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:$K
 gcloud functions deploy billing-kill-switch --project "$PROJECT_ID" --gen2 --region "$REGION" \
   --runtime nodejs22 --source "$DIR" --entry-point stopBilling \
   --trigger-topic billing-alerts --service-account "$KILL_SA" \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=$PROJECT_ID" \
   --memory 256Mi --max-instances 1 --quiet
 
 echo "Budget ${BUDGET_EUR} € et coupe-circuit en place."
