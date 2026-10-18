@@ -17,7 +17,7 @@ Cloud Run démarre un conteneur en 1 à 3 s, toujours à 0 instance au repos, da
 Fichiers : [`apps/api/Dockerfile`](../apps/api/Dockerfile), [`.dockerignore`](../.dockerignore),
 [`infra/gcp/setup.sh`](../infra/gcp/setup.sh), [`infra/gcp/budget-kill-switch/`](../infra/gcp/budget-kill-switch/).
 
-## Coût : rester à 0 €, plafonné à 1 €
+## Coût : rester à 0 €, plafonné à 0,10 €
 
 Réglages du service : 0 à **1 instance max**, 1 vCPU, 512 Mio, CPU facturé uniquement pendant les requêtes.
 Ordres de grandeur de l'offre gratuite Cloud Run (par mois, par compte de facturation) : 180 000 vCPU-secondes,
@@ -27,7 +27,7 @@ Secret Manager (2 secrets, dans la gratuité), Pub/Sub et la fonction du coupe-c
 **À vérifier sur la page de tarifs au moment de créer le compte** : les quotas gratuits peuvent varier selon la région.
 
 ⚠ **Un budget GCP ne bloque rien** : il envoie des e-mails. Le plafond réel vient du **coupe-circuit** : le budget
-publie sur Pub/Sub, une fonction lit le coût et, au-delà de 1 €, **détache la facturation du projet** (tout s'arrête).
+publie sur Pub/Sub, une fonction lit le coût et, au-delà de 0,10 €, **détache la facturation du projet** (tout s'arrête).
 Les données de coût arrivent avec quelques heures de retard : le dépassement maximal reste de l'ordre de quelques centimes.
 La devise du budget doit être celle du compte de facturation (EUR).
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Budget mensuel (1 € par défaut) + fonction qui coupe la facturation du projet s'il est dépassé.
+# Budget mensuel (0,10 € par défaut) + fonction qui coupe la facturation du projet s'il est dépassé.
 # Appelé par ../setup.sh ; relançable seul : PROJECT_ID=… BILLING_ACCOUNT=… bash deploy.sh
 set -euo pipefail
 : "${PROJECT_ID:?}" ; : "${BILLING_ACCOUNT:?}"
 REGION="${REGION:-europe-west3}"
-BUDGET_EUR="${BUDGET_EUR:-1}"
+BUDGET_EUR="${BUDGET_EUR:-0.10}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 exists() { "$@" >/dev/null 2>&1; }
 
@@ -14,7 +14,7 @@ exists gcloud pubsub topics describe billing-alerts --project "$PROJECT_ID" \
 # Budget limité à ce projet, alertes à 50 %, 90 % et 100 % (e-mail aux administrateurs du compte)
 if ! gcloud billing budgets list --billing-account "$BILLING_ACCOUNT" --billing-project "$PROJECT_ID" --format 'value(displayName)' | grep -qx "ronde-api"; then
   gcloud billing budgets create --billing-account "$BILLING_ACCOUNT" --billing-project "$PROJECT_ID" --display-name ronde-api \
-    --budget-amount "${BUDGET_EUR}EUR" --filter-projects "projects/$PROJECT_ID" \
+    --budget-amount "$(LC_ALL=C printf %.9f "$BUDGET_EUR")EUR" --filter-projects "projects/$PROJECT_ID" \
     --threshold-rule percent=0.5 --threshold-rule percent=0.9 --threshold-rule percent=1.0 \
     --notifications-rule-pubsub-topic "projects/$PROJECT_ID/topics/billing-alerts"
 fi

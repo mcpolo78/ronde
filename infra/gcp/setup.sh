@@ -8,7 +8,7 @@
 #
 # Ce que ça crée : projet, APIs, dépôt Artifact Registry, 2 secrets, compte de service d'exécution
 # (accès aux secrets seulement), compte de service de déploiement + Workload Identity Federation pour
-# GitHub Actions, service Cloud Run « ronde-api » (0 à 1 instance), budget à 1 € avec coupe-circuit.
+# GitHub Actions, service Cloud Run « ronde-api » (0 à 1 instance), budget à 0,10 € avec coupe-circuit.
 set -euo pipefail
 
 : "${PROJECT_ID:?PROJECT_ID manquant}"
@@ -16,7 +16,7 @@ set -euo pipefail
 : "${BACKOFFICE_URL:?BACKOFFICE_URL manquant}"
 : "${GITHUB_REPO:?GITHUB_REPO manquant (owner/name)}"
 REGION="${REGION:-europe-west3}"   # Francfort, comme la base Neon
-BUDGET_EUR="${BUDGET_EUR:-1}"
+BUDGET_EUR="${BUDGET_EUR:-0.10}"
 
 say() { printf '\n\033[1;36m▸ %s\033[0m\n' "$*"; }
 exists() { "$@" >/dev/null 2>&1; }
