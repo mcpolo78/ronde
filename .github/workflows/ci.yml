@@ -47,7 +47,6 @@ jobs:
       CORS_ORIGINS: http://localhost:3000,http://localhost:8081
       # les tests mobiles préparent et vérifient les données via l'en-tête x-dev-user
       ALLOW_DEV_IMPERSONATION: "true"
-      PLAYWRIGHT_CHANNEL: chromium
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -58,7 +57,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm codegen
       - run: pnpm db:deploy && pnpm db:seed # migrations versionnées, comme en production
-      - run: pnpm --filter @ronde/web exec playwright install --with-deps chromium
+      # Chrome préinstallé sur l'image GitHub (canal par défaut des configs Playwright) : pas de téléchargement
+      # de navigateur ni d'apt-get, donc pas de dépendance aux miroirs Ubuntu, et un navigateur à jour.
+      - name: Chrome du runner
+        run: google-chrome --version
       - name: Back-office
         run: pnpm --filter @ronde/web test:e2e
       - name: App technicien (version web, réseau coupé puis rétabli)

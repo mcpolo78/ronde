@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Parcours E2E du back-office, contre l'API et une base remplie par `pnpm db:seed`.
  * En local : Chrome installé sur la machine (aucun navigateur à télécharger).
- * En CI : Chromium de Playwright (`PLAYWRIGHT_CHANNEL=chromium`).
+ * En CI aussi : le Chrome préinstallé sur le runner GitHub (`PLAYWRIGHT_CHANNEL` permet de changer de canal).
  */
 export default defineConfig({
   testDir: "./e2e",
