@@ -136,6 +136,11 @@ Le tableau de bord initialise la carte (WebGL) seulement à l'approche de l'écr
 
 La CI GitHub Actions exécute tout cela à chaque push et pull request, E2E compris (Postgres en service, Chromium headless).
 
+### Mesures de charge
+
+L'API a été mesurée sur 2,4 millions d'interventions : indicateurs du tableau de bord de 1 041 à 95 ms (p50, 16 requêtes
+simultanées), deux bugs de montée en charge corrigés. Protocole, résultats et limites dans [`apps/api/bench`](apps/api/bench/README.md).
+
 ## Avancement
 
 - [x] **S1** — Monorepo, CI, modèle de données, API GraphQL (requêtes, mutations, temps réel), données de démo, règles métier testées

@@ -1,0 +1,8 @@
+4752|84.94|403.6|1|SELECT count(*)::int AS "total", count(*) FILTER (WHERE i.status = $4)::int AS "done", count(*) FILTER (WHERE i.status IN ($5, $6))::int AS "inProgress", avg(fl
+7261|21.89|159.0|1|UPDATE "public"."Company" SET "lastReferenceNumber" = ("public"."Company"."lastReferenceNumber" + $1) WHERE ("public"."Company"."id" = $2 AND $3=$4) RETURNING "
+579|15.36|8.9|2000|SELECT "public"."Site"."id", "public"."Site"."label", "public"."Site"."address", "public"."Site"."city", "public"."Site"."postalCode", "public"."Site"."latitude
+579|2.99|1.7|1000|SELECT "public"."Customer"."id", "public"."Customer"."name", "public"."Customer"."email", "public"."Customer"."phone", "public"."Customer"."companyId", "public"
+1666|0.67|1.1|333|SELECT "public"."Intervention"."id", "public"."Intervention"."reference", "public"."Intervention"."type", "public"."Intervention"."description", "public"."Inter
+7261|0.13|0.9|1|INSERT INTO "public"."Intervention" ("id","reference","type","priority","status","scheduledStart","scheduledEnd","visitNumber","companyId","siteId","createdAt",
+1257|0.50|0.6|153|SELECT "public"."Site"."id", "public"."Site"."label", "public"."Site"."address", "public"."Site"."city", "public"."Site"."postalCode", "public"."Site"."latitude
+3129|0.20|0.6|85|SELECT "public"."Intervention"."id", "public"."Intervention"."reference", "public"."Intervention"."type", "public"."Intervention"."description", "public"."Inter

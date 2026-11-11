@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-11T13:55:19.891Z",
+  "concurrency": 1,
+  "durationSeconds": 10,
+  "results": [
+    {
+      "scenario": "tableau de bord (30 j)",
+      "requetes": 330,
+      "req/s": 33,
+      "p50": 29.5,
+      "p95": 39.4,
+      "p99": 44.3,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (30 j)",
+      "requetes": 412,
+      "req/s": 41.2,
+      "p50": 22,
+      "p95": 34.7,
+      "p99": 41.1,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (365 j)",
+      "requetes": 23,
+      "req/s": 2.3,
+      "p50": 425.9,
+      "p95": 550.7,
+      "p99": 598.2,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "planning (1 semaine)",
+      "requetes": 150,
+      "req/s": 15,
+      "p50": 67.4,
+      "p95": 83.7,
+      "p99": 91,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "liste filtrée (1 technicien, 30 j)",
+      "requetes": 1022,
+      "req/s": 102.2,
+      "p50": 9.6,
+      "p95": 13.2,
+      "p99": 18.2,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "détail d'une intervention",
+      "requetes": 2317,
+      "req/s": 231.7,
+      "p50": 4.1,
+      "p95": 6.1,
+      "p99": 8.1,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "formulaire (sites + techniciens)",
+      "requetes": 173,
+      "req/s": 17.3,
+      "p50": 57.5,
+      "p95": 71,
+      "p99": 76.5,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "ma journée (mobile)",
+      "requetes": 2421,
+      "req/s": 242.1,
+      "p50": 3.9,
+      "p95": 6.2,
+      "p99": 8.5,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "création d'intervention",
+      "requetes": 1770,
+      "req/s": 177,
+      "p50": 5.4,
+      "p95": 8,
+      "p99": 11.3,
+      "erreurs": 0,
+      "detailErreurs": {}
+    }
+  ]
+}

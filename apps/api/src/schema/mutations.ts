@@ -74,11 +74,8 @@ async function ownIntervention(viewer: Viewer, id: string) {
 const notFound = () =>
   new GraphQLError("Intervention introuvable", { extensions: { code: "NOT_FOUND" } });
 
-async function nextReference(companyId: string) {
-  const year = new Date().getFullYear();
-  const count = await prisma.intervention.count({ where: { companyId } });
-  return `INT-${year}-${String(count + 1).padStart(4, "0")}`;
-}
+/** Référence lisible à partir du compteur de l'entreprise (voir Company.lastReferenceNumber). */
+const formatReference = (n: number) => `INT-${new Date().getFullYear()}-${String(n).padStart(4, "0")}`;
 
 builder.mutationType({
   fields: (t) => ({
@@ -105,13 +102,18 @@ builder.mutationType({
         });
         if (!site) throw new GraphQLError("Site introuvable", { extensions: { code: "NOT_FOUND" } });
 
-        const created = await prisma.intervention.create({
-          ...query,
-          data: {
-            ...data,
-            companyId: viewer.companyId,
-            reference: await nextReference(viewer.companyId),
-          },
+        // Le compteur et l'insertion partagent une transaction : l'UPDATE verrouille la ligne de l'entreprise,
+        // les créations simultanées se suivent au lieu de se disputer le même numéro, et un échec ne laisse pas de trou.
+        const created = await prisma.$transaction(async (tx) => {
+          const { lastReferenceNumber } = await tx.company.update({
+            where: { id: viewer.companyId },
+            data: { lastReferenceNumber: { increment: 1 } },
+            select: { lastReferenceNumber: true },
+          });
+          return tx.intervention.create({
+            ...query,
+            data: { ...data, companyId: viewer.companyId, reference: formatReference(lastReferenceNumber) },
+          });
         });
         pubsub.publish("intervention:updated", viewer.companyId, { interventionId: created.id });
         if (data.technicianId) {

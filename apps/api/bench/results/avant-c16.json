@@ -1,0 +1,101 @@
+{
+  "date": "2026-11-11T13:34:52.615Z",
+  "concurrency": 16,
+  "durationSeconds": 20,
+  "results": [
+    {
+      "scenario": "tableau de bord (30 j)",
+      "requetes": 257,
+      "req/s": 12.9,
+      "p50": 1299.6,
+      "p95": 1520,
+      "p99": 1741.7,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (30 j)",
+      "requetes": 318,
+      "req/s": 15.9,
+      "p50": 1041,
+      "p95": 1226.3,
+      "p99": 1328.1,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (365 j)",
+      "requetes": 235,
+      "req/s": 11.8,
+      "p50": 1421.2,
+      "p95": 1691.9,
+      "p99": 1783.6,
+      "erreurs": 235,
+      "detailErreurs": {
+        "Unexpected error.": 235
+      }
+    },
+    {
+      "scenario": "planning (1 semaine)",
+      "requetes": 400,
+      "req/s": 20,
+      "p50": 830.2,
+      "p95": 940.3,
+      "p99": 1019.4,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "liste filtrée (1 technicien, 30 j)",
+      "requetes": 2758,
+      "req/s": 137.9,
+      "p50": 119.6,
+      "p95": 144,
+      "p99": 163.2,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "détail d'une intervention",
+      "requetes": 7316,
+      "req/s": 365.8,
+      "p50": 43.5,
+      "p95": 53.7,
+      "p99": 61.8,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "formulaire (sites + techniciens)",
+      "requetes": 569,
+      "req/s": 28.5,
+      "p50": 562.8,
+      "p95": 710.2,
+      "p99": 790.8,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "ma journée (mobile)",
+      "requetes": 9541,
+      "req/s": 477.1,
+      "p50": 33.4,
+      "p95": 42.7,
+      "p99": 46.7,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "création d'intervention",
+      "requetes": 3519,
+      "req/s": 176,
+      "p50": 89.4,
+      "p95": 124.8,
+      "p99": 142.4,
+      "erreurs": 3018,
+      "detailErreurs": {
+        "Unexpected error.": 3018
+      }
+    }
+  ]
+}
