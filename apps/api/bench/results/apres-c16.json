@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-11T13:49:08.228Z",
+  "concurrency": 16,
+  "durationSeconds": 20,
+  "results": [
+    {
+      "scenario": "tableau de bord (30 j)",
+      "requetes": 1252,
+      "req/s": 62.6,
+      "p50": 256.6,
+      "p95": 314.2,
+      "p99": 339.8,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (30 j)",
+      "requetes": 3297,
+      "req/s": 164.9,
+      "p50": 95.3,
+      "p95": 140.5,
+      "p99": 162.9,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (365 j)",
+      "requetes": 188,
+      "req/s": 9.4,
+      "p50": 1764.8,
+      "p95": 2273.8,
+      "p99": 2429.4,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "planning (1 semaine)",
+      "requetes": 403,
+      "req/s": 20.2,
+      "p50": 800.4,
+      "p95": 1005.3,
+      "p99": 1216.7,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "liste filtrée (1 technicien, 30 j)",
+      "requetes": 3124,
+      "req/s": 156.2,
+      "p50": 99.1,
+      "p95": 134.1,
+      "p99": 148.2,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "détail d'une intervention",
+      "requetes": 7911,
+      "req/s": 395.6,
+      "p50": 39.4,
+      "p95": 52.3,
+      "p99": 57.1,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "formulaire (sites + techniciens)",
+      "requetes": 574,
+      "req/s": 28.7,
+      "p50": 559.1,
+      "p95": 720.8,
+      "p99": 777.9,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "ma journée (mobile)",
+      "requetes": 9917,
+      "req/s": 495.9,
+      "p50": 31.2,
+      "p95": 42.3,
+      "p99": 48.6,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "création d'intervention",
+      "requetes": 7256,
+      "req/s": 362.8,
+      "p50": 38,
+      "p95": 88.6,
+      "p99": 124.2,
+      "erreurs": 0,
+      "detailErreurs": {}
+    }
+  ]
+}

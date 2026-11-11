@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-11T13:41:05.709Z",
+  "concurrency": 1,
+  "durationSeconds": 10,
+  "results": [
+    {
+      "scenario": "tableau de bord (30 j)",
+      "requetes": 113,
+      "req/s": 11.3,
+      "p50": 87.5,
+      "p95": 112.1,
+      "p99": 138.2,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (30 j)",
+      "requetes": 132,
+      "req/s": 13.2,
+      "p50": 75,
+      "p95": 98.9,
+      "p99": 102.4,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "indicateurs seuls (365 j)",
+      "requetes": 113,
+      "req/s": 11.3,
+      "p50": 87.5,
+      "p95": 117.9,
+      "p99": 141.6,
+      "erreurs": 113,
+      "detailErreurs": {
+        "Unexpected error.": 113
+      }
+    },
+    {
+      "scenario": "planning (1 semaine)",
+      "requetes": 164,
+      "req/s": 16.4,
+      "p50": 58.5,
+      "p95": 79.7,
+      "p99": 86.3,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "liste filtrée (1 technicien, 30 j)",
+      "requetes": 1044,
+      "req/s": 104.4,
+      "p50": 9.2,
+      "p95": 13.5,
+      "p99": 17.4,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "détail d'une intervention",
+      "requetes": 2205,
+      "req/s": 220.5,
+      "p50": 4.3,
+      "p95": 6.8,
+      "p99": 9,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "formulaire (sites + techniciens)",
+      "requetes": 176,
+      "req/s": 17.6,
+      "p50": 56.6,
+      "p95": 73,
+      "p99": 81.3,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "ma journée (mobile)",
+      "requetes": 2439,
+      "req/s": 243.9,
+      "p50": 3.9,
+      "p95": 6.2,
+      "p99": 8.6,
+      "erreurs": 0,
+      "detailErreurs": {}
+    },
+    {
+      "scenario": "création d'intervention",
+      "requetes": 707,
+      "req/s": 70.7,
+      "p50": 14.1,
+      "p95": 18.1,
+      "p99": 21.7,
+      "erreurs": 0,
+      "detailErreurs": {}
+    }
+  ]
+}

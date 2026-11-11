@@ -281,6 +281,8 @@ async function main() {
 
   // ordre imposé par les clés étrangères
   await insertInBatches((data) => prisma.intervention.createMany({ data }), rows.interventions);
+  // les prochaines créations continuent la numérotation du seed
+  await prisma.company.update({ where: { id: company.id }, data: { lastReferenceNumber: refCounter } });
   await insertInBatches((data) => prisma.checklistItem.createMany({ data }), rows.checklist);
   await insertInBatches((data) => prisma.statusEvent.createMany({ data }), rows.events);
   await insertInBatches((data) => prisma.storedFile.createMany({ data }), rows.files, 100);

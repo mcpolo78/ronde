@@ -37,6 +37,9 @@ enum Priority {
 model Company {
   id            String         @id @default(cuid())
   name          String
+  /// Dernier numéro de référence attribué (INT-2026-0042 → 42). Incrémenté dans la transaction de création :
+  /// deux créations simultanées ne peuvent pas recevoir le même numéro.
+  lastReferenceNumber Int      @default(0)
   createdAt     DateTime       @default(now())
   users         User[]
   customers     Customer[]

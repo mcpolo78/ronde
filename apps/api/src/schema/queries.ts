@@ -1,11 +1,6 @@
-import {
-  arrivalDelayMinutes,
-  average,
-  dayRange,
-  firstTimeFixRate,
-  onSiteDurationMinutes,
-} from "@ronde/domain";
+import { dayRange } from "@ronde/domain";
 import { builder, requireViewer } from "../builder";
+import { dashboardStats } from "../dashboard";
 import { prisma } from "../db";
 import { InterventionStatusEnum } from "./enums";
 
@@ -132,25 +127,9 @@ builder.queryType({
         from: t.arg({ type: "DateTime", required: true }),
         to: t.arg({ type: "DateTime", required: true }),
       },
-      resolve: async (_root, args, ctx) => {
+      resolve: (_root, args, ctx) => {
         const viewer = requireViewer(ctx, "MANAGER");
-        const rows = await prisma.intervention.findMany({
-          where: { companyId: viewer.companyId, scheduledStart: { gte: args.from, lt: args.to } },
-          select: {
-            status: true,
-            scheduledStart: true,
-            visitNumber: true,
-            events: { select: { status: true, at: true }, orderBy: { at: "asc" } },
-          },
-        });
-        return {
-          total: rows.length,
-          done: rows.filter((r) => r.status === "DONE").length,
-          inProgress: rows.filter((r) => r.status === "EN_ROUTE" || r.status === "ON_SITE").length,
-          avgOnSiteMinutes: average(rows.map(onSiteDurationMinutes)),
-          avgArrivalDelayMinutes: average(rows.map(arrivalDelayMinutes)),
-          firstTimeFixRate: firstTimeFixRate(rows),
-        };
+        return dashboardStats(viewer.companyId, args.from, args.to);
       },
     }),
   }),

@@ -1,0 +1,8 @@
+3524|14.92|52.6|1|SELECT COUNT(*) AS "_count$_all" FROM (SELECT "public"."Intervention"."id" FROM "public"."Intervention" WHERE "public"."Intervention"."companyId" = $1 OFFSET $2
+825|15.12|12.5|15717|SELECT "public"."Intervention"."id", "public"."Intervention"."status"::text, "public"."Intervention"."scheduledStart", "public"."Intervention"."visitNumber" FRO
+585|17.94|10.5|10800|SELECT "public"."StatusEvent"."id", "public"."StatusEvent"."status"::text, "public"."StatusEvent"."at", "public"."StatusEvent"."interventionId" FROM "public"."S
+574|15.21|8.7|2000|SELECT "public"."Site"."id", "public"."Site"."label", "public"."Site"."address", "public"."Site"."city", "public"."Site"."postalCode", "public"."Site"."latitude
+574|2.99|1.7|1000|SELECT "public"."Customer"."id", "public"."Customer"."name", "public"."Customer"."email", "public"."Customer"."phone", "public"."Customer"."companyId", "public"
+668|1.15|0.8|580|SELECT "public"."Intervention"."id", "public"."Intervention"."reference", "public"."Intervention"."type", "public"."Intervention"."description", "public"."Inter
+2763|0.21|0.6|85|SELECT "public"."Intervention"."id", "public"."Intervention"."reference", "public"."Intervention"."type", "public"."Intervention"."description", "public"."Inter
+24959|0.02|0.4|1|SELECT "public"."User"."id", "public"."User"."companyId", "public"."User"."role"::text FROM "public"."User" WHERE ("public"."User"."email" = $1 AND $4=$5) LIMIT
