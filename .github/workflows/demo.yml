@@ -31,6 +31,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter "@ronde/api..."
       - run: pnpm --filter @ronde/api codegen
-      - run: pnpm db:deploy
+      # Neon met la base en veille : la première connexion peut dépasser le délai de Prisma (P1001).
+      # On réessaie quelques fois le temps que la base se réveille.
+      - name: Migrations (avec réveil de la base)
+        run: |
+          for i in 1 2 3 4 5; do
+            pnpm db:deploy && exit 0
+            echo "Base injoignable (essai $i/5), nouvel essai dans 10 s..."
+            sleep 10
+          done
+          exit 1
       - run: pnpm db:seed
 
